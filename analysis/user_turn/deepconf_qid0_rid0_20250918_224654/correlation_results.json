@@ -1,0 +1,30 @@
+{
+    "avg_token_conf_correlation": {
+        "correlation": -0.0172,
+        "p_value": 0.829
+    },
+    "first_token_conf_correlation": {
+        "correlation": 0.0368,
+        "p_value": 0.6431
+    },
+    "max_token_conf_correlation": {
+        "correlation": 0.0226,
+        "p_value": 0.7764
+    },
+    "correctness": {
+        "correct_count": 160,
+        "total_count": 161,
+        "accuracy": 0.9938
+    },
+    "generation": {
+        "macro_max_length": 6799,
+        "macro_min_length": 53,
+        "macro_average_length": 6799.0,
+        "correct_average_length": 134.15625,
+        "incorrect_average_length": 200.0,
+        "correct_min_length": 53,
+        "incorrect_min_length": 200,
+        "correct_max_length": 6799,
+        "incorrect_max_length": 200
+    }
+}

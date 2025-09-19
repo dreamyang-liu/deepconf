@@ -131,7 +131,7 @@ def prepare_prompt_gpt(question_data, tokenizer, reasoning_effort):
     return full_prompt, ground_truth
 
 
-def process_output(output, ground_truth, window_size):
+def process_output(output, ground_truth, window_size, append_prefix=''):
     """Process a single vLLM output"""
     text = output.text
     token_ids = output.token_ids
@@ -141,7 +141,7 @@ def process_output(output, ground_truth, window_size):
     confs = compute_confidence(logprobs) if logprobs else []
     sliding_window = compute_least_grouped(confs, group_size=window_size) if confs else [0]
     
-    extracted_answer = extract_answer(text)
+    extracted_answer = extract_answer(append_prefix + text)
     
     is_correct = False
     if extracted_answer and ground_truth:
@@ -172,7 +172,7 @@ def process_batch_revive_results(batch_outputs, ground_truth, window_size):
         total_tokens = 0
         
         for output in question_outputs:
-            trace_data = process_output(output, ground_truth, window_size)
+            trace_data = process_output(output, ground_truth, window_size, '\\boxed')
             traces.append(trace_data)
             min_confs.append(trace_data["min_conf"])
             total_tokens += trace_data["num_tokens"]

@@ -14,22 +14,22 @@ import pickle
 from helper import process_batch_revive_results
 
 
+INJECT_PROMPT = ". Now I feel confident about my existing analysis, I should directly and only give the short answer without being verbose and explaining details.</think>\n\\boxed"
+
 def prepare_prompt(question, dropped_thinking_trace, tokenizer):
     
     # Format prompt using chat template
     messages = [
         {"role": "system", "content": "该助手为DeepSeek-R1，由深度求索公司创造。\n今天是2025年5月28日，星期一。\n"},
         {"role": "user", "content": question},
-        {"role": "assistant", "content": "Below is my thinking on the question.\n" + dropped_thinking_trace[7:]},
-        {"role": "user", "content": "Based on your current thinking, directly give your short answer, don't make any reasoning or explaination."}
     ]
     
     full_prompt = tokenizer.apply_chat_template(
         messages,
         tokenize=False,
-        add_generation_prompt=True,
+        add_generation_prompt=True
     )
-    full_prompt += "<think>\n</think>"
+    full_prompt += dropped_thinking_trace + INJECT_PROMPT
     return full_prompt
 
 import matplotlib.pyplot as plt
@@ -103,11 +103,14 @@ try:
             print("Fields in the pickle file:")
             print(data['final_traces'][0].keys())
             group_confs = []
+            kept_group_confs = []
             prepared_prompts = []
             for trace in data['final_traces']:
                 if trace['stop_reason'] == 'gconf_threshold':
                     group_confs.append(np.array(trace['group_confs']))
-                    # prepared_prompts.append(prepare_prompt(data['question'], trace['text'], tokenizer))
+                    prepared_prompts.append(prepare_prompt(data['question'], trace['text'], tokenizer))
+                else:
+                    kept_group_confs.append(np.array(trace['group_confs']))
             
             cache_file = f'./generation_cache_{filename.split(".")[0]}.pkl'
             if os.path.exists(cache_file):
@@ -117,7 +120,7 @@ try:
             else:
                 #
                 print("Generating outputs with LLM...")
-                # final_outputs = llm.generate(prepared_prompts, continue_params)
+                final_outputs = llm.generate(prepared_prompts, continue_params)
                 # Cache the results
                 with open(cache_file, 'wb') as f:
                     pickle.dump(final_outputs, f)
@@ -127,6 +130,9 @@ try:
             os.makedirs(f"./analysis/{filename.split(".")[0]}", exist_ok=True)
             first_token_confs = defaultdict(list)
             avg_token_confs = defaultdict(list)
+            max_token_confs = defaultdict(list)
+            generated_token_length = defaultdict(list)
+            output_texts = []
             for idx, (processed_result, output) in enumerate(zip(processed_results, final_outputs)):
                 trace = processed_result['traces'][0]
                 prompt_conf = group_confs[idx]
@@ -137,10 +143,15 @@ try:
                 if trace['is_correct']:
                     first_token_confs['correct'].append(conf[0])
                     avg_token_confs['correct'].append(np.mean(conf))
+                    max_token_confs['correct'].append(max(conf) if conf else 0)
+                    generated_token_length['correct'].append(len(conf))
                 else:
                     first_token_confs['incorrect'].append(conf[0])
                     avg_token_confs['incorrect'].append(np.mean(conf))
-            
+                    max_token_confs['incorrect'].append(max(conf) if conf else 0)
+                    generated_token_length['incorrect'].append(len(conf))
+                output_texts.append(processed_result['traces'][0]['text'])
+
             # Draw scatter plot for first token confidence
             plt.figure(figsize=(10, 6))
             if first_token_confs['correct']:
@@ -170,6 +181,21 @@ try:
             plt.legend()
             plt.grid(True)
             plt.savefig(f"./analysis/{filename.split('.')[0]}/avg_token_conf.png")
+
+            # Draw scatter plot for max token confidence
+            plt.figure(figsize=(10, 6))
+            if max_token_confs['correct']:
+                plt.scatter(range(len(max_token_confs['correct'])), max_token_confs['correct'],
+                            color='green', label='Correct', alpha=0.7)
+            if max_token_confs['incorrect']:
+                plt.scatter(range(len(max_token_confs['incorrect'])), max_token_confs['incorrect'],
+                            color='red', label='Incorrect', alpha=0.7)
+            plt.title(f'Max Token Confidence ({filename})')
+            plt.xlabel('Sample Index')
+            plt.ylabel('Confidence')
+            plt.legend()
+            plt.grid(True)
+            plt.savefig(f"./analysis/{filename.split('.')[0]}/max_token_conf.png")
 
             # Draw violin plot for first token confidence
             plt.figure(figsize=(10, 6))
@@ -207,7 +233,25 @@ try:
                 plt.grid(True)
                 plt.savefig(f"./analysis/{filename.split('.')[0]}/avg_token_conf_violin.png")
 
-                        # Calculate Pearson coefficient between correctness and average token confidence
+            # Draw violin plot for max token confidence
+            plt.figure(figsize=(10, 6))
+            data_to_plot = []
+            labels = []
+            if max_token_confs['correct']:
+                data_to_plot.append(max_token_confs['correct'])
+                labels.append('Correct')
+            if max_token_confs['incorrect']:
+                data_to_plot.append(max_token_confs['incorrect'])
+                labels.append('Incorrect')
+            if data_to_plot:
+                plt.violinplot(data_to_plot, showmeans=True, showmedians=True)
+                plt.xticks(range(1, len(labels) + 1), labels)
+                plt.title(f'Max Token Confidence Distribution ({filename})')
+                plt.ylabel('Confidence')
+                plt.grid(True)
+                plt.savefig(f"./analysis/{filename.split('.')[0]}/max_token_conf_violin.png")
+
+            # Calculate Pearson coefficient between correctness and average token confidence
             correct_confs = avg_token_confs['correct']
             incorrect_confs = avg_token_confs['incorrect']
 
@@ -217,20 +261,19 @@ try:
 
             # Prepare results for JSON
             results_data = {}
-
             if len(all_confs) > 1 and len(set(all_correctness)) > 1:  # Ensure we have variation in both variables
                 from scipy.stats import pearsonr
                 corr, p_value = pearsonr(all_correctness, all_confs)
                 corr_line = f"Pearson correlation coefficient for avg token conf ({filename}): {corr:.4f} (p-value: {p_value:.4f})"
                 print(corr_line)
-                results_data["avg_token_correlation"] = {
+                results_data["avg_token_conf_correlation"] = {
                     "correlation": round(corr, 4),
                     "p_value": round(p_value, 4)
                 }
             else:
                 corr_line = f"Cannot calculate Pearson correlation for avg token conf ({filename}): insufficient data or no variation"
                 print(corr_line)
-                results_data["avg_token_correlation"] = {
+                results_data["avg_token_conf_correlation"] = {
                     "error": "insufficient data or no variation"
                 }
 
@@ -247,14 +290,38 @@ try:
                 first_corr, first_p_value = pearsonr(all_first_correctness, all_first_confs)
                 first_corr_line = f"Pearson correlation coefficient for first token conf ({filename}): {first_corr:.4f} (p-value: {first_p_value:.4f})"
                 print(first_corr_line)
-                results_data["first_token_correlation"] = {
+                results_data["first_token_conf_correlation"] = {
                     "correlation": round(first_corr, 4),
                     "p_value": round(first_p_value, 4)
                 }
             else:
                 first_corr_line = f"Cannot calculate Pearson correlation for first token conf ({filename}): insufficient data or no variation"
                 print(first_corr_line)
-                results_data["first_token_correlation"] = {
+                results_data["first_token_conf_correlation"] = {
+                    "error": "insufficient data or no variation"
+                }
+
+            # Calculate Pearson coefficient for max token confidence
+            correct_max_confs = max_token_confs['correct']
+            incorrect_max_confs = max_token_confs['incorrect']
+
+            # Prepare data for correlation
+            all_max_confs = correct_max_confs + incorrect_max_confs
+            all_max_correctness = [1] * len(correct_max_confs) + [0] * len(incorrect_max_confs)
+
+            if len(all_max_confs) > 1 and len(set(all_max_correctness)) > 1:  # Ensure we have variation in both variables
+                from scipy.stats import pearsonr
+                max_corr, max_p_value = pearsonr(all_max_correctness, all_max_confs)
+                max_corr_line = f"Pearson correlation coefficient for max token conf ({filename}): {max_corr:.4f} (p-value: {max_p_value:.4f})"
+                print(max_corr_line)
+                results_data["max_token_conf_correlation"] = {
+                    "correlation": round(max_corr, 4),
+                    "p_value": round(max_p_value, 4)
+                }
+            else:
+                max_corr_line = f"Cannot calculate Pearson correlation for max token conf ({filename}): insufficient data or no variation"
+                print(max_corr_line)
+                results_data["max_token_conf_correlation"] = {
                     "error": "insufficient data or no variation"
                 }
 
@@ -265,12 +332,26 @@ try:
                 "total_count": len(final_outputs),
                 "accuracy": round(correct_count / len(final_outputs), 4) if len(final_outputs) > 0 else 0
             }
+            results_data["generation"] = {
+                "macro_max_length": max(generated_token_length['correct'] + generated_token_length['incorrect']),
+                "macro_min_length": min(generated_token_length['correct'] + generated_token_length['incorrect']),
+                "macro_average_length": np.mean(max(generated_token_length['correct'] + generated_token_length['incorrect'])),
+                "correct_average_length": np.mean(generated_token_length['correct']) if generated_token_length['correct'] else 0,
+                "incorrect_average_length": np.mean(generated_token_length['incorrect']) if generated_token_length['incorrect'] else 0,
+                "correct_min_length": min(generated_token_length['correct']) if generated_token_length['correct'] else 0,
+                "incorrect_min_length": min(generated_token_length['incorrect']) if generated_token_length['incorrect'] else 0,
+                "correct_max_length": max(generated_token_length['correct']) if generated_token_length['correct'] else 0,
+                "incorrect_max_length": max(generated_token_length['incorrect']) if generated_token_length['incorrect'] else 0
+            }
             print(correct_line)
 
             # Write results to JSON file
             import json
             with open(f"./analysis/{filename.split('.')[0]}/correlation_results.json", 'w') as f:
                 json.dump(results_data, f, indent=4)
+            
+            with open(f"./analysis/{filename.split('.')[0]}/outputs_text.json", 'w') as f:
+                json.dump(output_texts, f, indent=4)
 
             print(f"Revivied Trace Correctness ({filename}): {correct_count}/{len(final_outputs)}")
 

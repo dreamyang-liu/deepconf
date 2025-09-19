@@ -1,15 +1,30 @@
 {
-    "avg_token_correlation": {
-        "correlation": 0.0327,
-        "p_value": 0.6631
+    "avg_token_conf_correlation": {
+        "correlation": 0.821,
+        "p_value": 0.0
     },
-    "first_token_correlation": {
-        "correlation": 0.003,
-        "p_value": 0.9683
+    "first_token_conf_correlation": {
+        "correlation": 0.8026,
+        "p_value": 0.0
+    },
+    "max_token_conf_correlation": {
+        "correlation": 0.5816,
+        "p_value": 0.0
     },
     "correctness": {
-        "correct_count": 139,
+        "correct_count": 101,
         "total_count": 180,
-        "accuracy": 0.7722
+        "accuracy": 0.5611
+    },
+    "generation": {
+        "macro_max_length": 192,
+        "macro_min_length": 4,
+        "macro_average_length": 192.0,
+        "correct_average_length": 8.831683168316832,
+        "incorrect_average_length": 7.3544303797468356,
+        "correct_min_length": 7,
+        "incorrect_min_length": 4,
+        "correct_max_length": 192,
+        "incorrect_max_length": 18
     }
 }

@@ -1,0 +1,15 @@
+{
+    "avg_token_correlation": {
+        "correlation": 0.2955,
+        "p_value": 0.0
+    },
+    "first_token_correlation": {
+        "correlation": 0.204,
+        "p_value": 0.0034
+    },
+    "correctness": {
+        "correct_count": 171,
+        "total_count": 204,
+        "accuracy": 0.8382
+    }
+}

@@ -11,7 +11,8 @@ import time
 import pickle
 import numpy as np
 from datetime import datetime
-from helper import equal_func, prepare_prompt, weighted_majority_vote, process_batch_results
+from helper import equal_func, prepare_prompt, weighted_majority_vote
+from inspect_helper import process_batch_results_original
 import os
 import argparse
 
@@ -114,7 +115,7 @@ def main(qid, rid, use_predefined_threshold):
         warmup_result = {'traces': [],'total_tokens':0}
         conf_bar = BRUMO_DPSK_8B_THRESHOLD[qid]
     else:
-        warmup_result = process_batch_results(warmup_outputs, ground_truth, window_size=WINDOW_SIZE)
+        warmup_result = process_batch_results_original(warmup_outputs, ground_truth, window_size=WINDOW_SIZE, tokenizer=tokenizer)
         print('Warmup min_confs:', warmup_result['min_confs'])
         conf_bar = float(np.percentile(warmup_result['min_confs'], CONFIDENCE_PERCENTILE))
     warmup_process_time = time.time() - warmup_process_start
@@ -140,7 +141,7 @@ def main(qid, rid, use_predefined_threshold):
 
     # Process final results
     final_process_start = time.time()
-    final_result = process_batch_results(final_outputs, ground_truth, window_size=WINDOW_SIZE)
+    final_result = process_batch_results_original(final_outputs, ground_truth, window_size=WINDOW_SIZE, tokenizer=tokenizer)
     final_process_time = time.time() - final_process_start
     print('Final min_confs:', final_result['min_confs'])
 

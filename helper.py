@@ -161,30 +161,6 @@ def process_output(output, ground_truth, window_size, append_prefix=''):
         "is_correct": is_correct,
     }
 
-def process_batch_revive_results(batch_outputs, ground_truth, window_size):
-    """Process batch results from vLLM for a single question"""
-    for i in range(len(batch_outputs)):
-        question_outputs = batch_outputs[i].outputs
-        
-        # Process all traces for this question
-        traces = []
-        min_confs = []
-        total_tokens = 0
-        
-        for output in question_outputs:
-            trace_data = process_output(output, ground_truth, window_size, '\\boxed')
-            traces.append(trace_data)
-            min_confs.append(trace_data["min_conf"])
-            total_tokens += trace_data["num_tokens"]
-        
-        yield {
-            'traces': traces,
-            'min_confs': min_confs,
-            'ground_truth': ground_truth,
-            'total_tokens': total_tokens,
-            'num_traces': len(traces)
-        }
-
 def process_batch_results(batch_outputs, ground_truth, window_size):
     """Process batch results from vLLM for a single question"""
     question_outputs = batch_outputs[0].outputs

@@ -280,13 +280,13 @@ try:
     parser = argparse.ArgumentParser(description="Analysis script")
     parser.add_argument('--enable-llm', action='store_true', help="Enable LLM engine initialization")
     args = parser.parse_args()
-    if args.enable_llm:
-        tokenizer_init_start = time.time()
-        tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH, trust_remote_code=True)
-        tokenizer_init_time = time.time() - tokenizer_init_start
-        print(f"Tokenizer initialized in {tokenizer_init_time:.2f} seconds")
+    tokenizer_init_start = time.time()
+    tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH, trust_remote_code=True)
+    tokenizer_init_time = time.time() - tokenizer_init_start
+    print(f"Tokenizer initialized in {tokenizer_init_time:.2f} seconds")
 
-        # Initialize vLLM engine
+    # Initialize vLLM engine
+    if args.enable_llm:
         print("Initializing vLLM engine...")
         llm_init_start = time.time()
         llm = LLM(
@@ -314,12 +314,14 @@ try:
     fig, axes = plt.subplots(3, 3, figsize=(18, 18))
     trace_types = ['completed_traces', 'truncated_traces', 'combined_traces']
     conf_types = ['min_conf', 'max_conf', 'avg_conf']
+    deepconf_correctness = []
     for filename in os.listdir(BASE_PATH):
         # Only iterate all question in one round, remove it when finish all trj
         if 'rid1' in filename:
             continue
         with open(os.path.join(BASE_PATH, filename), 'rb') as file:
             data = pickle.load(file)
+            deepconf_correctness.append(data['is_voted_correct'])
             group_confs = []
             kept_group_confs = []
             prepared_prompts = []
@@ -383,6 +385,7 @@ try:
             macro_accuracies[conf_type][f"{trace_type}_accuracy"] = np.mean(macro_accuracies[conf_type][trace_type])
 
     macro_accuracies["combined"]["metadata"] = [MODEL_PATH, WINDOW_SIZE, PROMPT_VERSION_MAP[PROMPT_VERSION]]
+    macro_accuracies["deepconf_accuracy"] = np.mean(deepconf_correctness)
     with open(f"./analysis/accuracy_results.json", "w") as f:
         json.dump(macro_accuracies, f)
 

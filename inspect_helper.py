@@ -142,15 +142,16 @@ def process_output(output, ground_truth, window_size, append_prefix='', tokenize
             is_correct = str(extracted_answer) == str(ground_truth)
     
     answer_conf = locate_answer_conf(token_ids, confs, extracted_answer, text, tokenizer)
+
     return {
         "stop_reason": output.finish_reason,
         "text": text,
         "token_ids": token_ids,
         "num_tokens": len(token_ids) if token_ids else 0,
         "confs": confs,
-        "avg_conf": np.mean(answer_conf) if extracted_answer else 0,
-        "max_conf": np.max(answer_conf) if extracted_answer else 0 ,
-        "min_conf": np.min(answer_conf) if extracted_answer else 0,
+        "avg_conf": 0 if not extracted_answer else np.mean(answer_conf),
+        "max_conf": 0 if not extracted_answer else np.max(answer_conf) ,
+        "min_conf": 0 if not extracted_answer else np.min(answer_conf),
         "group_confs": sliding_window,
         "min_conf": min(sliding_window) if sliding_window else 0,
         "extracted_answer": extracted_answer,

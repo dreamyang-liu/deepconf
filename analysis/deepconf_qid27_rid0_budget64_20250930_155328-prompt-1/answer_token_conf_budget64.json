@@ -1,0 +1,1027 @@
+{
+  "completed": [
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "5",
+          "confidence": 25.066
+        },
+        {
+          "index": 1,
+          "token": "\\",
+          "confidence": 26.575
+        },
+        {
+          "index": 2,
+          "token": "sqrt",
+          "confidence": 26.3
+        },
+        {
+          "index": 3,
+          "token": "{",
+          "confidence": 23.741
+        },
+        {
+          "index": 4,
+          "token": "2",
+          "confidence": 20.725
+        },
+        {
+          "index": 5,
+          "token": "}}",
+          "confidence": 23.062
+        }
+      ],
+      "extracted_answer": "5\\sqrt{2}"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "5",
+          "confidence": 24.562
+        },
+        {
+          "index": 1,
+          "token": "\\",
+          "confidence": 26.762
+        },
+        {
+          "index": 2,
+          "token": "sqrt",
+          "confidence": 26.362
+        },
+        {
+          "index": 3,
+          "token": "{",
+          "confidence": 24.491
+        },
+        {
+          "index": 4,
+          "token": "2",
+          "confidence": 21.513
+        },
+        {
+          "index": 5,
+          "token": "}}",
+          "confidence": 21.619
+        }
+      ],
+      "extracted_answer": "5\\sqrt{2}"
+    }
+  ],
+  "truncated": [
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "1",
+          "confidence": 8.061
+        },
+        {
+          "index": 1,
+          "token": "2",
+          "confidence": 8.436
+        }
+      ],
+      "extracted_answer": "12"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "1",
+          "confidence": 8.099
+        },
+        {
+          "index": 1,
+          "token": "6",
+          "confidence": 7.717
+        }
+      ],
+      "extracted_answer": "16"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "1",
+          "confidence": 8.347
+        },
+        {
+          "index": 1,
+          "token": "2",
+          "confidence": 8.385
+        }
+      ],
+      "extracted_answer": "12"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "1",
+          "confidence": 9.48
+        },
+        {
+          "index": 1,
+          "token": "2",
+          "confidence": 9.244
+        }
+      ],
+      "extracted_answer": "12"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "1",
+          "confidence": 7.936
+        },
+        {
+          "index": 1,
+          "token": "2",
+          "confidence": 8.438
+        }
+      ],
+      "extracted_answer": "12"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "1",
+          "confidence": 8.011
+        },
+        {
+          "index": 1,
+          "token": "2",
+          "confidence": 8.293
+        }
+      ],
+      "extracted_answer": "12"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "1",
+          "confidence": 9.246
+        },
+        {
+          "index": 1,
+          "token": "8",
+          "confidence": 9.957
+        }
+      ],
+      "extracted_answer": "18"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "1",
+          "confidence": 8.133
+        },
+        {
+          "index": 1,
+          "token": "2",
+          "confidence": 8.415
+        }
+      ],
+      "extracted_answer": "12"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "1",
+          "confidence": 9.115
+        },
+        {
+          "index": 1,
+          "token": "2",
+          "confidence": 8.715
+        }
+      ],
+      "extracted_answer": "12"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "1",
+          "confidence": 7.807
+        },
+        {
+          "index": 1,
+          "token": "3",
+          "confidence": 8.472
+        }
+      ],
+      "extracted_answer": "13"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "1",
+          "confidence": 9.661
+        },
+        {
+          "index": 1,
+          "token": "2",
+          "confidence": 9.969
+        }
+      ],
+      "extracted_answer": "12"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "1",
+          "confidence": 9.384
+        },
+        {
+          "index": 1,
+          "token": "2",
+          "confidence": 9.148
+        }
+      ],
+      "extracted_answer": "12"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "8",
+          "confidence": 7.82
+        }
+      ],
+      "extracted_answer": "8"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "1",
+          "confidence": 8.023
+        },
+        {
+          "index": 1,
+          "token": "3",
+          "confidence": 8.111
+        }
+      ],
+      "extracted_answer": "13"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "1",
+          "confidence": 9.231
+        },
+        {
+          "index": 1,
+          "token": "6",
+          "confidence": 9.662
+        }
+      ],
+      "extracted_answer": "16"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "1",
+          "confidence": 9.208
+        },
+        {
+          "index": 1,
+          "token": "2",
+          "confidence": 9.232
+        }
+      ],
+      "extracted_answer": "12"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "1",
+          "confidence": 7.754
+        },
+        {
+          "index": 1,
+          "token": "2",
+          "confidence": 8.513
+        }
+      ],
+      "extracted_answer": "12"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "1",
+          "confidence": 8.129
+        },
+        {
+          "index": 1,
+          "token": "2",
+          "confidence": 8.674
+        }
+      ],
+      "extracted_answer": "12"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "1",
+          "confidence": 8.524
+        },
+        {
+          "index": 1,
+          "token": "2",
+          "confidence": 9.091
+        }
+      ],
+      "extracted_answer": "12"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "2",
+          "confidence": 9.176
+        },
+        {
+          "index": 1,
+          "token": "4",
+          "confidence": 9.108
+        }
+      ],
+      "extracted_answer": "24"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "1",
+          "confidence": 7.567
+        },
+        {
+          "index": 1,
+          "token": "2",
+          "confidence": 8.259
+        }
+      ],
+      "extracted_answer": "12"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "1",
+          "confidence": 9.296
+        },
+        {
+          "index": 1,
+          "token": "6",
+          "confidence": 9.151
+        }
+      ],
+      "extracted_answer": "16"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "1",
+          "confidence": 8.803
+        },
+        {
+          "index": 1,
+          "token": "2",
+          "confidence": 9.174
+        }
+      ],
+      "extracted_answer": "12"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "1",
+          "confidence": 8.65
+        },
+        {
+          "index": 1,
+          "token": "2",
+          "confidence": 9.167
+        }
+      ],
+      "extracted_answer": "12"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "1",
+          "confidence": 8.089
+        },
+        {
+          "index": 1,
+          "token": "2",
+          "confidence": 8.242
+        }
+      ],
+      "extracted_answer": "12"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "1",
+          "confidence": 9.44
+        },
+        {
+          "index": 1,
+          "token": "2",
+          "confidence": 9.869
+        }
+      ],
+      "extracted_answer": "12"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "1",
+          "confidence": 8.075
+        },
+        {
+          "index": 1,
+          "token": "2",
+          "confidence": 8.327
+        }
+      ],
+      "extracted_answer": "12"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "2",
+          "confidence": 8.815
+        },
+        {
+          "index": 1,
+          "token": "4",
+          "confidence": 8.703
+        }
+      ],
+      "extracted_answer": "24"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "1",
+          "confidence": 8.801
+        },
+        {
+          "index": 1,
+          "token": "2",
+          "confidence": 8.832
+        }
+      ],
+      "extracted_answer": "12"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "1",
+          "confidence": 8.963
+        },
+        {
+          "index": 1,
+          "token": "2",
+          "confidence": 8.631
+        }
+      ],
+      "extracted_answer": "12"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "1",
+          "confidence": 8.802
+        },
+        {
+          "index": 1,
+          "token": "2",
+          "confidence": 8.624
+        }
+      ],
+      "extracted_answer": "12"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "1",
+          "confidence": 7.79
+        },
+        {
+          "index": 1,
+          "token": "5",
+          "confidence": 8.149
+        }
+      ],
+      "extracted_answer": "15"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "1",
+          "confidence": 9.561
+        },
+        {
+          "index": 1,
+          "token": "2",
+          "confidence": 9.571
+        }
+      ],
+      "extracted_answer": "12"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "1",
+          "confidence": 8.926
+        },
+        {
+          "index": 1,
+          "token": "2",
+          "confidence": 9.087
+        }
+      ],
+      "extracted_answer": "12"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "1",
+          "confidence": 7.88
+        },
+        {
+          "index": 1,
+          "token": "2",
+          "confidence": 7.969
+        }
+      ],
+      "extracted_answer": "12"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "1",
+          "confidence": 9.768
+        },
+        {
+          "index": 1,
+          "token": "5",
+          "confidence": 9.55
+        }
+      ],
+      "extracted_answer": "15"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "1",
+          "confidence": 7.856
+        },
+        {
+          "index": 1,
+          "token": "2",
+          "confidence": 8.012
+        }
+      ],
+      "extracted_answer": "12"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "1",
+          "confidence": 8.369
+        },
+        {
+          "index": 1,
+          "token": "5",
+          "confidence": 8.398
+        }
+      ],
+      "extracted_answer": "15"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "1",
+          "confidence": 8.735
+        },
+        {
+          "index": 1,
+          "token": "2",
+          "confidence": 9.135
+        }
+      ],
+      "extracted_answer": "12"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "1",
+          "confidence": 9.252
+        },
+        {
+          "index": 1,
+          "token": "2",
+          "confidence": 9.323
+        }
+      ],
+      "extracted_answer": "12"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "1",
+          "confidence": 9.18
+        },
+        {
+          "index": 1,
+          "token": "8",
+          "confidence": 9.112
+        }
+      ],
+      "extracted_answer": "18"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "8",
+          "confidence": 8.287
+        }
+      ],
+      "extracted_answer": "8"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "1",
+          "confidence": 9.683
+        },
+        {
+          "index": 1,
+          "token": "2",
+          "confidence": 9.629
+        }
+      ],
+      "extracted_answer": "12"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "2",
+          "confidence": 7.143
+        },
+        {
+          "index": 1,
+          "token": "4",
+          "confidence": 7.254
+        }
+      ],
+      "extracted_answer": "24"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "1",
+          "confidence": 9.162
+        },
+        {
+          "index": 1,
+          "token": "6",
+          "confidence": 9.017
+        }
+      ],
+      "extracted_answer": "16"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "1",
+          "confidence": 7.712
+        },
+        {
+          "index": 1,
+          "token": "6",
+          "confidence": 7.889
+        }
+      ],
+      "extracted_answer": "16"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "1",
+          "confidence": 9.107
+        },
+        {
+          "index": 1,
+          "token": "2",
+          "confidence": 9.47
+        }
+      ],
+      "extracted_answer": "12"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "8",
+          "confidence": 9.043
+        }
+      ],
+      "extracted_answer": "8"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "5",
+          "confidence": 9.527
+        },
+        {
+          "index": 1,
+          "token": "\\",
+          "confidence": 11.655
+        },
+        {
+          "index": 2,
+          "token": "sqrt",
+          "confidence": 18.613
+        },
+        {
+          "index": 3,
+          "token": "{",
+          "confidence": 16.656
+        },
+        {
+          "index": 4,
+          "token": "2",
+          "confidence": 13.735
+        },
+        {
+          "index": 5,
+          "token": "}}",
+          "confidence": 10.958
+        }
+      ],
+      "extracted_answer": "5\\sqrt{2}"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "8",
+          "confidence": 9.051
+        }
+      ],
+      "extracted_answer": "8"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "1",
+          "confidence": 7.941
+        },
+        {
+          "index": 1,
+          "token": "6",
+          "confidence": 8.7
+        }
+      ],
+      "extracted_answer": "16"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "1",
+          "confidence": 9.512
+        },
+        {
+          "index": 1,
+          "token": "2",
+          "confidence": 9.429
+        }
+      ],
+      "extracted_answer": "12"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "1",
+          "confidence": 8.69
+        },
+        {
+          "index": 1,
+          "token": "6",
+          "confidence": 8.479
+        }
+      ],
+      "extracted_answer": "16"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "1",
+          "confidence": 7.96
+        },
+        {
+          "index": 1,
+          "token": "2",
+          "confidence": 8.456
+        }
+      ],
+      "extracted_answer": "12"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "1",
+          "confidence": 8.019
+        },
+        {
+          "index": 1,
+          "token": "2",
+          "confidence": 8.464
+        }
+      ],
+      "extracted_answer": "12"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "1",
+          "confidence": 8.85
+        },
+        {
+          "index": 1,
+          "token": "2",
+          "confidence": 9.108
+        }
+      ],
+      "extracted_answer": "12"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "1",
+          "confidence": 8.657
+        },
+        {
+          "index": 1,
+          "token": "2",
+          "confidence": 8.561
+        }
+      ],
+      "extracted_answer": "12"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "5",
+          "confidence": 11.546
+        },
+        {
+          "index": 1,
+          "token": "\\",
+          "confidence": 13.851
+        },
+        {
+          "index": 2,
+          "token": "sqrt",
+          "confidence": 20.625
+        },
+        {
+          "index": 3,
+          "token": "{",
+          "confidence": 18.006
+        },
+        {
+          "index": 4,
+          "token": "2",
+          "confidence": 14.622
+        },
+        {
+          "index": 5,
+          "token": "}}",
+          "confidence": 13.263
+        }
+      ],
+      "extracted_answer": "5\\sqrt{2}"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "1",
+          "confidence": 9.772
+        },
+        {
+          "index": 1,
+          "token": "2",
+          "confidence": 9.709
+        }
+      ],
+      "extracted_answer": "12"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "1",
+          "confidence": 9.408
+        },
+        {
+          "index": 1,
+          "token": "6",
+          "confidence": 9.285
+        }
+      ],
+      "extracted_answer": "16"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "1",
+          "confidence": 8.048
+        },
+        {
+          "index": 1,
+          "token": "2",
+          "confidence": 8.263
+        }
+      ],
+      "extracted_answer": "12"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "1",
+          "confidence": 9.201
+        },
+        {
+          "index": 1,
+          "token": "6",
+          "confidence": 9.07
+        }
+      ],
+      "extracted_answer": "16"
+    }
+  ],
+  "ground_truth": "5\\sqrt{2}"
+}

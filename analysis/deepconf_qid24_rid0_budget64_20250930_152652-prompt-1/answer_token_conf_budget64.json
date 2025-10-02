@@ -1,0 +1,2004 @@
+{
+  "completed": [
+    {
+      "answer_token_conf": [],
+      "extracted_answer": null
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "sqrt",
+          "confidence": 19.057
+        },
+        {
+          "index": 1,
+          "token": "{\\",
+          "confidence": 20.575
+        },
+        {
+          "index": 2,
+          "token": "d",
+          "confidence": 22.325
+        },
+        {
+          "index": 3,
+          "token": "frac",
+          "confidence": 20.716
+        },
+        {
+          "index": 4,
+          "token": "{",
+          "confidence": 21.331
+        },
+        {
+          "index": 5,
+          "token": "1",
+          "confidence": 16.247
+        },
+        {
+          "index": 6,
+          "token": "6",
+          "confidence": 17.463
+        },
+        {
+          "index": 7,
+          "token": " +",
+          "confidence": 17.406
+        },
+        {
+          "index": 8,
+          "token": " \\",
+          "confidence": 19.406
+        },
+        {
+          "index": 9,
+          "token": "sqrt",
+          "confidence": 18.394
+        },
+        {
+          "index": 10,
+          "token": "{",
+          "confidence": 23.219
+        },
+        {
+          "index": 11,
+          "token": "3",
+          "confidence": 22.441
+        },
+        {
+          "index": 12,
+          "token": "1",
+          "confidence": 20.897
+        },
+        {
+          "index": 13,
+          "token": "}}",
+          "confidence": 19.313
+        },
+        {
+          "index": 14,
+          "token": "{",
+          "confidence": 18.522
+        },
+        {
+          "index": 15,
+          "token": "2",
+          "confidence": 20.094
+        },
+        {
+          "index": 16,
+          "token": "}}}",
+          "confidence": 19.074
+        }
+      ],
+      "extracted_answer": "\\sqrt{\\dfrac{16 + \\sqrt{31}}{2}}"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "d",
+          "confidence": 25.431
+        },
+        {
+          "index": 1,
+          "token": "frac",
+          "confidence": 25.306
+        },
+        {
+          "index": 2,
+          "token": "{",
+          "confidence": 22.113
+        },
+        {
+          "index": 3,
+          "token": "1",
+          "confidence": 21.259
+        },
+        {
+          "index": 4,
+          "token": " +",
+          "confidence": 16.748
+        },
+        {
+          "index": 5,
+          "token": " \\",
+          "confidence": 20.338
+        },
+        {
+          "index": 6,
+          "token": "sqrt",
+          "confidence": 20.388
+        },
+        {
+          "index": 7,
+          "token": "{",
+          "confidence": 22.125
+        },
+        {
+          "index": 8,
+          "token": "3",
+          "confidence": 22.116
+        },
+        {
+          "index": 9,
+          "token": "1",
+          "confidence": 20.172
+        },
+        {
+          "index": 10,
+          "token": "}}",
+          "confidence": 17.081
+        },
+        {
+          "index": 11,
+          "token": "{",
+          "confidence": 19.5
+        },
+        {
+          "index": 12,
+          "token": "2",
+          "confidence": 22.097
+        },
+        {
+          "index": 13,
+          "token": "}}",
+          "confidence": 19.95
+        }
+      ],
+      "extracted_answer": "\\dfrac{1 + \\sqrt{31}}{2}"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "R",
+          "confidence": 17.069
+        },
+        {
+          "index": 1,
+          "token": "=\\",
+          "confidence": 11.985
+        },
+        {
+          "index": 2,
+          "token": "sqrt",
+          "confidence": 22.4
+        },
+        {
+          "index": 3,
+          "token": "{\\",
+          "confidence": 18.844
+        },
+        {
+          "index": 4,
+          "token": "d",
+          "confidence": 22.513
+        },
+        {
+          "index": 5,
+          "token": "frac",
+          "confidence": 19.384
+        },
+        {
+          "index": 6,
+          "token": "{",
+          "confidence": 18.513
+        },
+        {
+          "index": 7,
+          "token": "1",
+          "confidence": 15.65
+        },
+        {
+          "index": 8,
+          "token": "6",
+          "confidence": 17.675
+        },
+        {
+          "index": 9,
+          "token": "+\\",
+          "confidence": 17.069
+        },
+        {
+          "index": 10,
+          "token": "sqrt",
+          "confidence": 19.969
+        },
+        {
+          "index": 11,
+          "token": "{",
+          "confidence": 22.925
+        },
+        {
+          "index": 12,
+          "token": "3",
+          "confidence": 22.241
+        },
+        {
+          "index": 13,
+          "token": "1",
+          "confidence": 19.65
+        },
+        {
+          "index": 14,
+          "token": "}}",
+          "confidence": 16.769
+        },
+        {
+          "index": 15,
+          "token": "{",
+          "confidence": 19.969
+        },
+        {
+          "index": 16,
+          "token": "2",
+          "confidence": 19.4
+        },
+        {
+          "index": 17,
+          "token": "}}}",
+          "confidence": 17.159
+        }
+      ],
+      "extracted_answer": "R=\\sqrt{\\dfrac{16+\\sqrt{31}}{2}}"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "d",
+          "confidence": 25.738
+        },
+        {
+          "index": 1,
+          "token": "frac",
+          "confidence": 21.697
+        },
+        {
+          "index": 2,
+          "token": "{",
+          "confidence": 21.369
+        },
+        {
+          "index": 3,
+          "token": "1",
+          "confidence": 20.688
+        },
+        {
+          "index": 4,
+          "token": "+\\",
+          "confidence": 19.624
+        },
+        {
+          "index": 5,
+          "token": "sqrt",
+          "confidence": 20.75
+        },
+        {
+          "index": 6,
+          "token": "{",
+          "confidence": 23.581
+        },
+        {
+          "index": 7,
+          "token": "3",
+          "confidence": 22.2
+        },
+        {
+          "index": 8,
+          "token": "1",
+          "confidence": 21.794
+        },
+        {
+          "index": 9,
+          "token": "}}",
+          "confidence": 18.559
+        },
+        {
+          "index": 10,
+          "token": "{",
+          "confidence": 19.544
+        },
+        {
+          "index": 11,
+          "token": "2",
+          "confidence": 22.409
+        },
+        {
+          "index": 12,
+          "token": "}}",
+          "confidence": 20.469
+        }
+      ],
+      "extracted_answer": "\\dfrac{1+\\sqrt{31}}{2}"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "d",
+          "confidence": 24.262
+        },
+        {
+          "index": 1,
+          "token": "frac",
+          "confidence": 22.141
+        },
+        {
+          "index": 2,
+          "token": "{",
+          "confidence": 21.46
+        },
+        {
+          "index": 3,
+          "token": "1",
+          "confidence": 19.716
+        },
+        {
+          "index": 4,
+          "token": " +",
+          "confidence": 19.076
+        },
+        {
+          "index": 5,
+          "token": " \\",
+          "confidence": 21.163
+        },
+        {
+          "index": 6,
+          "token": "sqrt",
+          "confidence": 21.2
+        },
+        {
+          "index": 7,
+          "token": "{",
+          "confidence": 23.681
+        },
+        {
+          "index": 8,
+          "token": "3",
+          "confidence": 21.4
+        },
+        {
+          "index": 9,
+          "token": "1",
+          "confidence": 19.047
+        },
+        {
+          "index": 10,
+          "token": "}}",
+          "confidence": 19.603
+        },
+        {
+          "index": 11,
+          "token": "{",
+          "confidence": 19.916
+        },
+        {
+          "index": 12,
+          "token": "2",
+          "confidence": 22.612
+        },
+        {
+          "index": 13,
+          "token": "}}",
+          "confidence": 18.581
+        }
+      ],
+      "extracted_answer": "\\dfrac{1 + \\sqrt{31}}{2}"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "d",
+          "confidence": 24.05
+        },
+        {
+          "index": 1,
+          "token": "frac",
+          "confidence": 22.488
+        },
+        {
+          "index": 2,
+          "token": "{",
+          "confidence": 21.452
+        },
+        {
+          "index": 3,
+          "token": "1",
+          "confidence": 20.5
+        },
+        {
+          "index": 4,
+          "token": " +",
+          "confidence": 18.801
+        },
+        {
+          "index": 5,
+          "token": " \\",
+          "confidence": 21.244
+        },
+        {
+          "index": 6,
+          "token": "sqrt",
+          "confidence": 21.181
+        },
+        {
+          "index": 7,
+          "token": "{",
+          "confidence": 23.619
+        },
+        {
+          "index": 8,
+          "token": "3",
+          "confidence": 21.894
+        },
+        {
+          "index": 9,
+          "token": "1",
+          "confidence": 19.291
+        },
+        {
+          "index": 10,
+          "token": "}}",
+          "confidence": 18.963
+        },
+        {
+          "index": 11,
+          "token": "{",
+          "confidence": 18.281
+        },
+        {
+          "index": 12,
+          "token": "2",
+          "confidence": 22.234
+        },
+        {
+          "index": 13,
+          "token": "}}",
+          "confidence": 19.344
+        }
+      ],
+      "extracted_answer": "\\dfrac{1 + \\sqrt{31}}{2}"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "d",
+          "confidence": 24.562
+        },
+        {
+          "index": 1,
+          "token": "frac",
+          "confidence": 22.144
+        },
+        {
+          "index": 2,
+          "token": "{",
+          "confidence": 21.225
+        },
+        {
+          "index": 3,
+          "token": "1",
+          "confidence": 20.031
+        },
+        {
+          "index": 4,
+          "token": "+\\",
+          "confidence": 19.493
+        },
+        {
+          "index": 5,
+          "token": "sqrt",
+          "confidence": 20.438
+        },
+        {
+          "index": 6,
+          "token": "{",
+          "confidence": 23.481
+        },
+        {
+          "index": 7,
+          "token": "3",
+          "confidence": 21.45
+        },
+        {
+          "index": 8,
+          "token": "1",
+          "confidence": 21.716
+        },
+        {
+          "index": 9,
+          "token": "}}",
+          "confidence": 17.428
+        },
+        {
+          "index": 10,
+          "token": "{",
+          "confidence": 19.428
+        },
+        {
+          "index": 11,
+          "token": "2",
+          "confidence": 22.488
+        },
+        {
+          "index": 12,
+          "token": "}}",
+          "confidence": 19.969
+        }
+      ],
+      "extracted_answer": "\\dfrac{1+\\sqrt{31}}{2}"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "d",
+          "confidence": 24.719
+        },
+        {
+          "index": 1,
+          "token": "frac",
+          "confidence": 25.653
+        },
+        {
+          "index": 2,
+          "token": "{",
+          "confidence": 21.588
+        },
+        {
+          "index": 3,
+          "token": "1",
+          "confidence": 20.572
+        },
+        {
+          "index": 4,
+          "token": " +",
+          "confidence": 16.233
+        },
+        {
+          "index": 5,
+          "token": " \\",
+          "confidence": 20.55
+        },
+        {
+          "index": 6,
+          "token": "sqrt",
+          "confidence": 20.512
+        },
+        {
+          "index": 7,
+          "token": "{",
+          "confidence": 20.891
+        },
+        {
+          "index": 8,
+          "token": "3",
+          "confidence": 22.119
+        },
+        {
+          "index": 9,
+          "token": "1",
+          "confidence": 21.003
+        },
+        {
+          "index": 10,
+          "token": "}}",
+          "confidence": 17.4
+        },
+        {
+          "index": 11,
+          "token": "{",
+          "confidence": 19.575
+        },
+        {
+          "index": 12,
+          "token": "2",
+          "confidence": 21.15
+        },
+        {
+          "index": 13,
+          "token": "}}",
+          "confidence": 19.756
+        }
+      ],
+      "extracted_answer": "\\dfrac{1 + \\sqrt{31}}{2}"
+    },
+    {
+      "answer_token_conf": [],
+      "extracted_answer": null
+    },
+    {
+      "answer_token_conf": [],
+      "extracted_answer": null
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "d",
+          "confidence": 26.831
+        },
+        {
+          "index": 1,
+          "token": "frac",
+          "confidence": 24.872
+        },
+        {
+          "index": 2,
+          "token": "{",
+          "confidence": 21.763
+        },
+        {
+          "index": 3,
+          "token": "1",
+          "confidence": 20.584
+        },
+        {
+          "index": 4,
+          "token": " +",
+          "confidence": 17.706
+        },
+        {
+          "index": 5,
+          "token": " \\",
+          "confidence": 20.313
+        },
+        {
+          "index": 6,
+          "token": "sqrt",
+          "confidence": 20.219
+        },
+        {
+          "index": 7,
+          "token": "{",
+          "confidence": 21.794
+        },
+        {
+          "index": 8,
+          "token": "3",
+          "confidence": 19.619
+        },
+        {
+          "index": 9,
+          "token": "1",
+          "confidence": 19.788
+        },
+        {
+          "index": 10,
+          "token": "}}",
+          "confidence": 17.175
+        },
+        {
+          "index": 11,
+          "token": "{",
+          "confidence": 19.222
+        },
+        {
+          "index": 12,
+          "token": "2",
+          "confidence": 22.159
+        },
+        {
+          "index": 13,
+          "token": "}}",
+          "confidence": 19.756
+        }
+      ],
+      "extracted_answer": "\\dfrac{1 + \\sqrt{31}}{2}"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "d",
+          "confidence": 24.2
+        },
+        {
+          "index": 1,
+          "token": "frac",
+          "confidence": 21.759
+        },
+        {
+          "index": 2,
+          "token": "{",
+          "confidence": 18.983
+        },
+        {
+          "index": 3,
+          "token": "1",
+          "confidence": 17.76
+        },
+        {
+          "index": 4,
+          "token": " +",
+          "confidence": 17.796
+        },
+        {
+          "index": 5,
+          "token": " \\",
+          "confidence": 20.994
+        },
+        {
+          "index": 6,
+          "token": "sqrt",
+          "confidence": 21.212
+        },
+        {
+          "index": 7,
+          "token": "{",
+          "confidence": 22.169
+        },
+        {
+          "index": 8,
+          "token": "3",
+          "confidence": 21.972
+        },
+        {
+          "index": 9,
+          "token": "1",
+          "confidence": 19.788
+        },
+        {
+          "index": 10,
+          "token": "}}",
+          "confidence": 18.484
+        },
+        {
+          "index": 11,
+          "token": "{",
+          "confidence": 19.309
+        },
+        {
+          "index": 12,
+          "token": "2",
+          "confidence": 22.938
+        },
+        {
+          "index": 13,
+          "token": "}}\n",
+          "confidence": 16.763
+        }
+      ],
+      "extracted_answer": "\\dfrac{1 + \\sqrt{31}}{2}"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "d",
+          "confidence": 25.356
+        },
+        {
+          "index": 1,
+          "token": "frac",
+          "confidence": 22.625
+        },
+        {
+          "index": 2,
+          "token": "{",
+          "confidence": 20.533
+        },
+        {
+          "index": 3,
+          "token": "1",
+          "confidence": 21.272
+        },
+        {
+          "index": 4,
+          "token": "+\\",
+          "confidence": 20.138
+        },
+        {
+          "index": 5,
+          "token": "sqrt",
+          "confidence": 20.8
+        },
+        {
+          "index": 6,
+          "token": "{",
+          "confidence": 24.25
+        },
+        {
+          "index": 7,
+          "token": "3",
+          "confidence": 23.353
+        },
+        {
+          "index": 8,
+          "token": "1",
+          "confidence": 23.028
+        },
+        {
+          "index": 9,
+          "token": "}}",
+          "confidence": 18.178
+        },
+        {
+          "index": 10,
+          "token": "{",
+          "confidence": 19.953
+        },
+        {
+          "index": 11,
+          "token": "2",
+          "confidence": 24.088
+        },
+        {
+          "index": 12,
+          "token": "}}",
+          "confidence": 19.325
+        }
+      ],
+      "extracted_answer": "\\dfrac{1+\\sqrt{31}}{2}"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "d",
+          "confidence": 26.231
+        },
+        {
+          "index": 1,
+          "token": "frac",
+          "confidence": 25.253
+        },
+        {
+          "index": 2,
+          "token": "{",
+          "confidence": 21.444
+        },
+        {
+          "index": 3,
+          "token": "1",
+          "confidence": 19.797
+        },
+        {
+          "index": 4,
+          "token": " +",
+          "confidence": 17.886
+        },
+        {
+          "index": 5,
+          "token": " \\",
+          "confidence": 21.425
+        },
+        {
+          "index": 6,
+          "token": "sqrt",
+          "confidence": 21.475
+        },
+        {
+          "index": 7,
+          "token": "{",
+          "confidence": 21.925
+        },
+        {
+          "index": 8,
+          "token": "3",
+          "confidence": 22.438
+        },
+        {
+          "index": 9,
+          "token": "1",
+          "confidence": 20.025
+        },
+        {
+          "index": 10,
+          "token": "}}",
+          "confidence": 17.234
+        },
+        {
+          "index": 11,
+          "token": "{",
+          "confidence": 19.656
+        },
+        {
+          "index": 12,
+          "token": "2",
+          "confidence": 21.828
+        },
+        {
+          "index": 13,
+          "token": "}}",
+          "confidence": 19.394
+        }
+      ],
+      "extracted_answer": "\\dfrac{1 + \\sqrt{31}}{2}"
+    }
+  ],
+  "truncated": [
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "2",
+          "confidence": 6.829
+        }
+      ],
+      "extracted_answer": "2"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "2",
+          "confidence": 6.327
+        },
+        {
+          "index": 1,
+          "token": "\\",
+          "confidence": 8.406
+        },
+        {
+          "index": 2,
+          "token": "sqrt",
+          "confidence": 11.082
+        },
+        {
+          "index": 3,
+          "token": "{",
+          "confidence": 12.965
+        },
+        {
+          "index": 4,
+          "token": "2",
+          "confidence": 10.936
+        },
+        {
+          "index": 5,
+          "token": "}}",
+          "confidence": 8.32
+        }
+      ],
+      "extracted_answer": "2\\sqrt{2}"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "3",
+          "confidence": 8.137
+        }
+      ],
+      "extracted_answer": "3"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "3",
+          "confidence": 7.101
+        }
+      ],
+      "extracted_answer": "3"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "2",
+          "confidence": 6.758
+        }
+      ],
+      "extracted_answer": "2"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "d",
+          "confidence": 15.469
+        },
+        {
+          "index": 1,
+          "token": "frac",
+          "confidence": 19.894
+        },
+        {
+          "index": 2,
+          "token": "{",
+          "confidence": 13.498
+        },
+        {
+          "index": 3,
+          "token": "1",
+          "confidence": 10.474
+        },
+        {
+          "index": 4,
+          "token": " +",
+          "confidence": 11.781
+        },
+        {
+          "index": 5,
+          "token": " \\",
+          "confidence": 15.938
+        },
+        {
+          "index": 6,
+          "token": "sqrt",
+          "confidence": 19.088
+        },
+        {
+          "index": 7,
+          "token": "{",
+          "confidence": 14.782
+        },
+        {
+          "index": 8,
+          "token": "3",
+          "confidence": 14.863
+        },
+        {
+          "index": 9,
+          "token": "1",
+          "confidence": 13.553
+        },
+        {
+          "index": 10,
+          "token": "}}",
+          "confidence": 13.088
+        },
+        {
+          "index": 11,
+          "token": "{",
+          "confidence": 13.769
+        },
+        {
+          "index": 12,
+          "token": "2",
+          "confidence": 15.147
+        },
+        {
+          "index": 13,
+          "token": "}}",
+          "confidence": 12.601
+        }
+      ],
+      "extracted_answer": "\\dfrac{1 + \\sqrt{31}}{2}"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "2",
+          "confidence": 7.005
+        }
+      ],
+      "extracted_answer": "2"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "R",
+          "confidence": 7.146
+        }
+      ],
+      "extracted_answer": "R"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "3",
+          "confidence": 6.882
+        }
+      ],
+      "extracted_answer": "3"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "3",
+          "confidence": 6.965
+        }
+      ],
+      "extracted_answer": "3"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "d",
+          "confidence": 16.169
+        },
+        {
+          "index": 1,
+          "token": "frac",
+          "confidence": 20.55
+        },
+        {
+          "index": 2,
+          "token": "{",
+          "confidence": 13.017
+        },
+        {
+          "index": 3,
+          "token": "1",
+          "confidence": 13.063
+        },
+        {
+          "index": 4,
+          "token": " +",
+          "confidence": 11.124
+        },
+        {
+          "index": 5,
+          "token": " \\",
+          "confidence": 14.519
+        },
+        {
+          "index": 6,
+          "token": "sqrt",
+          "confidence": 18.019
+        },
+        {
+          "index": 7,
+          "token": "{",
+          "confidence": 14.825
+        },
+        {
+          "index": 8,
+          "token": "3",
+          "confidence": 14.634
+        },
+        {
+          "index": 9,
+          "token": "1",
+          "confidence": 12.938
+        },
+        {
+          "index": 10,
+          "token": "}}",
+          "confidence": 13.913
+        },
+        {
+          "index": 11,
+          "token": "{",
+          "confidence": 13.588
+        },
+        {
+          "index": 12,
+          "token": "2",
+          "confidence": 15.659
+        },
+        {
+          "index": 13,
+          "token": "}}",
+          "confidence": 12.16
+        }
+      ],
+      "extracted_answer": "\\dfrac{1 + \\sqrt{31}}{2}"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "R",
+          "confidence": 6.85
+        }
+      ],
+      "extracted_answer": "R"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "R",
+          "confidence": 6.804
+        }
+      ],
+      "extracted_answer": "R"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "3",
+          "confidence": 6.841
+        },
+        {
+          "index": 1,
+          "token": "\\",
+          "confidence": 6.445
+        },
+        {
+          "index": 2,
+          "token": "sqrt",
+          "confidence": 10.078
+        },
+        {
+          "index": 3,
+          "token": "{",
+          "confidence": 11.106
+        },
+        {
+          "index": 4,
+          "token": "3",
+          "confidence": 9.173
+        },
+        {
+          "index": 5,
+          "token": "}}",
+          "confidence": 7.188
+        }
+      ],
+      "extracted_answer": "3\\sqrt{3}"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "3",
+          "confidence": 6.769
+        }
+      ],
+      "extracted_answer": "3"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "3",
+          "confidence": 7.084
+        }
+      ],
+      "extracted_answer": "3"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "2",
+          "confidence": 6.627
+        }
+      ],
+      "extracted_answer": "2"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "3",
+          "confidence": 7.672
+        }
+      ],
+      "extracted_answer": "3"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "3",
+          "confidence": 7.361
+        }
+      ],
+      "extracted_answer": "3"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "d",
+          "confidence": 11.713
+        },
+        {
+          "index": 1,
+          "token": "frac",
+          "confidence": 16.525
+        },
+        {
+          "index": 2,
+          "token": "{",
+          "confidence": 10.631
+        },
+        {
+          "index": 3,
+          "token": "2",
+          "confidence": 8.89
+        },
+        {
+          "index": 4,
+          "token": "\\",
+          "confidence": 8.853
+        },
+        {
+          "index": 5,
+          "token": "sqrt",
+          "confidence": 14.406
+        },
+        {
+          "index": 6,
+          "token": "{",
+          "confidence": 14.195
+        },
+        {
+          "index": 7,
+          "token": "5",
+          "confidence": 11.903
+        },
+        {
+          "index": 8,
+          "token": "}}",
+          "confidence": 9.695
+        },
+        {
+          "index": 9,
+          "token": "{",
+          "confidence": 8.885
+        },
+        {
+          "index": 10,
+          "token": "1",
+          "confidence": 7.93
+        },
+        {
+          "index": 11,
+          "token": "}}",
+          "confidence": 7.604
+        }
+      ],
+      "extracted_answer": "\\dfrac{2\\sqrt{5}}{1}"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "3",
+          "confidence": 7.164
+        }
+      ],
+      "extracted_answer": "3"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "3",
+          "confidence": 7.232
+        }
+      ],
+      "extracted_answer": "3"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "2",
+          "confidence": 6.267
+        }
+      ],
+      "extracted_answer": "2"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "3",
+          "confidence": 6.407
+        }
+      ],
+      "extracted_answer": "3"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "2",
+          "confidence": 7.14
+        }
+      ],
+      "extracted_answer": "2"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "3",
+          "confidence": 6.318
+        }
+      ],
+      "extracted_answer": "3"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "d",
+          "confidence": 15.988
+        },
+        {
+          "index": 1,
+          "token": "frac",
+          "confidence": 20.922
+        },
+        {
+          "index": 2,
+          "token": "{",
+          "confidence": 13.881
+        },
+        {
+          "index": 3,
+          "token": "1",
+          "confidence": 11.79
+        },
+        {
+          "index": 4,
+          "token": " +",
+          "confidence": 12.308
+        },
+        {
+          "index": 5,
+          "token": " \\",
+          "confidence": 15.863
+        },
+        {
+          "index": 6,
+          "token": "sqrt",
+          "confidence": 16.131
+        },
+        {
+          "index": 7,
+          "token": "{",
+          "confidence": 15.463
+        },
+        {
+          "index": 8,
+          "token": "3",
+          "confidence": 16.266
+        },
+        {
+          "index": 9,
+          "token": "1",
+          "confidence": 14.809
+        },
+        {
+          "index": 10,
+          "token": "}}",
+          "confidence": 13.706
+        },
+        {
+          "index": 11,
+          "token": "{",
+          "confidence": 13.779
+        },
+        {
+          "index": 12,
+          "token": "2",
+          "confidence": 15.928
+        },
+        {
+          "index": 13,
+          "token": "}}",
+          "confidence": 13.569
+        }
+      ],
+      "extracted_answer": "\\dfrac{1 + \\sqrt{31}}{2}"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "d",
+          "confidence": 16.325
+        },
+        {
+          "index": 1,
+          "token": "frac",
+          "confidence": 19.063
+        },
+        {
+          "index": 2,
+          "token": "{",
+          "confidence": 13.043
+        },
+        {
+          "index": 3,
+          "token": "1",
+          "confidence": 11.87
+        },
+        {
+          "index": 4,
+          "token": "+\\",
+          "confidence": 11.331
+        },
+        {
+          "index": 5,
+          "token": "sqrt",
+          "confidence": 17.069
+        },
+        {
+          "index": 6,
+          "token": "{",
+          "confidence": 14.094
+        },
+        {
+          "index": 7,
+          "token": "3",
+          "confidence": 15.119
+        },
+        {
+          "index": 8,
+          "token": "1",
+          "confidence": 12.834
+        },
+        {
+          "index": 9,
+          "token": "}}",
+          "confidence": 12.491
+        },
+        {
+          "index": 10,
+          "token": "{",
+          "confidence": 13.956
+        },
+        {
+          "index": 11,
+          "token": "2",
+          "confidence": 14.266
+        },
+        {
+          "index": 12,
+          "token": "}}",
+          "confidence": 11.929
+        }
+      ],
+      "extracted_answer": "\\dfrac{1+\\sqrt{31}}{2}"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "2",
+          "confidence": 6.589
+        }
+      ],
+      "extracted_answer": "2"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "d",
+          "confidence": 15.944
+        },
+        {
+          "index": 1,
+          "token": "frac",
+          "confidence": 19.869
+        },
+        {
+          "index": 2,
+          "token": "{",
+          "confidence": 13.252
+        },
+        {
+          "index": 3,
+          "token": "1",
+          "confidence": 10.62
+        },
+        {
+          "index": 4,
+          "token": "+\\",
+          "confidence": 11.706
+        },
+        {
+          "index": 5,
+          "token": "sqrt",
+          "confidence": 17.444
+        },
+        {
+          "index": 6,
+          "token": "{",
+          "confidence": 14.1
+        },
+        {
+          "index": 7,
+          "token": "3",
+          "confidence": 15.569
+        },
+        {
+          "index": 8,
+          "token": "1",
+          "confidence": 13.644
+        },
+        {
+          "index": 9,
+          "token": "}}",
+          "confidence": 12.588
+        },
+        {
+          "index": 10,
+          "token": "{",
+          "confidence": 13.635
+        },
+        {
+          "index": 11,
+          "token": "2",
+          "confidence": 14.456
+        },
+        {
+          "index": 12,
+          "token": "}}",
+          "confidence": 12.235
+        }
+      ],
+      "extracted_answer": "\\dfrac{1+\\sqrt{31}}{2}"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "3",
+          "confidence": 6.705
+        }
+      ],
+      "extracted_answer": "3"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "2",
+          "confidence": 6.668
+        }
+      ],
+      "extracted_answer": "2"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "2",
+          "confidence": 7.356
+        }
+      ],
+      "extracted_answer": "2"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "d",
+          "confidence": 16.0
+        },
+        {
+          "index": 1,
+          "token": "frac",
+          "confidence": 19.613
+        },
+        {
+          "index": 2,
+          "token": "{",
+          "confidence": 13.819
+        },
+        {
+          "index": 3,
+          "token": "1",
+          "confidence": 11.073
+        },
+        {
+          "index": 4,
+          "token": " +",
+          "confidence": 12.993
+        },
+        {
+          "index": 5,
+          "token": " \\",
+          "confidence": 16.538
+        },
+        {
+          "index": 6,
+          "token": "sqrt",
+          "confidence": 18.819
+        },
+        {
+          "index": 7,
+          "token": "{",
+          "confidence": 15.25
+        },
+        {
+          "index": 8,
+          "token": "3",
+          "confidence": 15.316
+        },
+        {
+          "index": 9,
+          "token": "1",
+          "confidence": 14.156
+        },
+        {
+          "index": 10,
+          "token": "}}",
+          "confidence": 13.375
+        },
+        {
+          "index": 11,
+          "token": "{",
+          "confidence": 13.863
+        },
+        {
+          "index": 12,
+          "token": "2",
+          "confidence": 15.219
+        },
+        {
+          "index": 13,
+          "token": "}}",
+          "confidence": 13.169
+        }
+      ],
+      "extracted_answer": "\\dfrac{1 + \\sqrt{31}}{2}"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "3",
+          "confidence": 7.623
+        }
+      ],
+      "extracted_answer": "3"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "2",
+          "confidence": 6.873
+        },
+        {
+          "index": 1,
+          "token": "\\",
+          "confidence": 9.027
+        },
+        {
+          "index": 2,
+          "token": "sqrt",
+          "confidence": 11.882
+        },
+        {
+          "index": 3,
+          "token": "{",
+          "confidence": 12.176
+        },
+        {
+          "index": 4,
+          "token": "2",
+          "confidence": 10.695
+        },
+        {
+          "index": 5,
+          "token": "}}",
+          "confidence": 7.913
+        }
+      ],
+      "extracted_answer": "2\\sqrt{2}"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "3",
+          "confidence": 6.952
+        }
+      ],
+      "extracted_answer": "3"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "3",
+          "confidence": 7.322
+        }
+      ],
+      "extracted_answer": "3"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "3",
+          "confidence": 7.037
+        }
+      ],
+      "extracted_answer": "3"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "3",
+          "confidence": 7.327
+        }
+      ],
+      "extracted_answer": "3"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "2",
+          "confidence": 7.131
+        }
+      ],
+      "extracted_answer": "2"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "3",
+          "confidence": 6.996
+        }
+      ],
+      "extracted_answer": "3"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "3",
+          "confidence": 6.857
+        }
+      ],
+      "extracted_answer": "3"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "3",
+          "confidence": 7.102
+        }
+      ],
+      "extracted_answer": "3"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "5",
+          "confidence": 7.275
+        }
+      ],
+      "extracted_answer": "5"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "3",
+          "confidence": 7.553
+        }
+      ],
+      "extracted_answer": "3"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "d",
+          "confidence": 15.669
+        },
+        {
+          "index": 1,
+          "token": "frac",
+          "confidence": 19.897
+        },
+        {
+          "index": 2,
+          "token": "{",
+          "confidence": 13.119
+        },
+        {
+          "index": 3,
+          "token": "1",
+          "confidence": 11.405
+        },
+        {
+          "index": 4,
+          "token": " +",
+          "confidence": 12.281
+        },
+        {
+          "index": 5,
+          "token": " \\",
+          "confidence": 16.231
+        },
+        {
+          "index": 6,
+          "token": "sqrt",
+          "confidence": 18.369
+        },
+        {
+          "index": 7,
+          "token": "{",
+          "confidence": 15.681
+        },
+        {
+          "index": 8,
+          "token": "3",
+          "confidence": 14.847
+        },
+        {
+          "index": 9,
+          "token": "1",
+          "confidence": 12.838
+        },
+        {
+          "index": 10,
+          "token": "}}",
+          "confidence": 13.269
+        },
+        {
+          "index": 11,
+          "token": "{",
+          "confidence": 12.95
+        },
+        {
+          "index": 12,
+          "token": "2",
+          "confidence": 14.984
+        },
+        {
+          "index": 13,
+          "token": "}}",
+          "confidence": 12.982
+        }
+      ],
+      "extracted_answer": "\\dfrac{1 + \\sqrt{31}}{2}"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "3",
+          "confidence": 6.823
+        }
+      ],
+      "extracted_answer": "3"
+    },
+    {
+      "answer_token_conf": [
+        {
+          "index": 0,
+          "token": "3",
+          "confidence": 7.259
+        }
+      ],
+      "extracted_answer": "3"
+    }
+  ],
+  "ground_truth": "\\frac{1+\\sqrt{31}}{2}"
+}

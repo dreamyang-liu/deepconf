@@ -29,3 +29,19 @@ with open("brumo_2025.jsonl", "w", encoding="utf-8") as f:
         f.write(json.dumps(entry, ensure_ascii=False) + "\n")
 
 print(f"Converted {len(dataset)} examples to brumo_2025.jsonl")
+
+
+
+# Load dataset
+dataset = load_dataset("MathArena/hmmt_feb_2025", split="train")
+
+# Convert to JSONL
+with open("hmmt_feb_2025.jsonl", "w", encoding="utf-8") as f:
+    for example in dataset:
+        entry = {
+            "question": example["problem"],
+            "answer": str(example["answer"])
+        }
+        f.write(json.dumps(entry, ensure_ascii=False) + "\n")
+
+print(f"Converted {len(dataset)} examples to hmmt_feb_2025.jsonl")

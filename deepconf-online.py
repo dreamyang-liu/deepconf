@@ -19,7 +19,7 @@ import argparse
 # Configuration
 MODEL_PATH = "deepseek-ai/DeepSeek-R1-0528-Qwen3-8B"
 MAX_TOKENS = 64000
-DATASET_FILE = "brumo_2025.jsonl"
+DATASET_FILE = "hmmt_feb_2025.jsonl"
 
 # Online algorithm parameters
 WARMUP_TRACES = 16

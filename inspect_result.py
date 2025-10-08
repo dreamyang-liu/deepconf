@@ -8,7 +8,7 @@ import os
 import json
 from collections import defaultdict
 import matplotlib.pyplot as plt
-from  inspect_helper import compute_voting_answer, process_batch_results, extract_structured_conf, compute_instance_accuracy
+from  inspect_helper import compute_voting_answer, process_batch_results, extract_structured_conf, compute_instance_accuracy, recompute_traces
 
 MODEL_PATH = "deepseek-ai/DeepSeek-R1-0528-Qwen3-8B"
 WINDOW_SIZE = 2048
@@ -279,6 +279,7 @@ try:
     import argparse
     parser = argparse.ArgumentParser(description="Analysis script")
     parser.add_argument('--enable-llm', action='store_true', help="Enable LLM engine initialization")
+    parser.add_argument('--budget', type=int, required=True)
     args = parser.parse_args()
     tokenizer_init_start = time.time()
     tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH, trust_remote_code=True)
@@ -291,7 +292,7 @@ try:
         llm_init_start = time.time()
         llm = LLM(
             model=MODEL_PATH,
-            tensor_parallel_size=8,
+            tensor_parallel_size=1,
             enable_prefix_caching=True,
             trust_remote_code=True,
         )
@@ -317,11 +318,12 @@ try:
     deepconf_correctness = []
     for filename in os.listdir(BASE_PATH):
         # Only iterate all question in one round, remove it when finish all trj
-        if 'rid1' in filename:
+        if 'rid1' in filename or f'budget{args.budget}' not in filename:
             continue
         with open(os.path.join(BASE_PATH, filename), 'rb') as file:
             data = pickle.load(file)
             deepconf_correctness.append(data['is_voted_correct'])
+            print(data['is_voted_correct'], filename)
             group_confs = []
             kept_group_confs = []
             prepared_prompts = []
@@ -349,11 +351,32 @@ try:
                 with open(cache_file, 'wb') as f:
                     pickle.dump(truncated_trace_generation_outputs, f)
             os.makedirs(f"./analysis/{get_cache_uuid(filename)}", exist_ok=True)
-            
+            completed_traces = recompute_traces(completed_traces, tokenizer)
             processed_results = list(process_batch_results(truncated_trace_generation_outputs, data['ground_truth'], WINDOW_SIZE, '\\boxed', tokenizer))
+
+            # Write completed traces and truncated traces
+            truncated_traces_token_confs = []
+            for trace in processed_results:
+                truncated_traces_token_confs.append({
+                    "answer_token_conf": trace['traces'][0]['answer_token_conf'],
+                    "extracted_answer": trace['traces'][0]['extracted_answer']
+                })
+            completed_traces_token_confs = []
+            for trace in completed_traces:
+                completed_traces_token_confs.append({
+                    "answer_token_conf": trace['answer_token_conf'],
+                    "extracted_answer": trace['extracted_answer']
+                })
+            with open(f"./analysis/{get_cache_uuid(filename)}/answer_token_conf_budget{args.budget}.json", "w") as f:
+                json.dump({
+                    "completed": completed_traces_token_confs,
+                    "truncated": truncated_traces_token_confs,
+                    "ground_truth": data["ground_truth"]
+                }, f, indent=2)
+
             voting_answer = compute_voting_answer(completed_traces, processed_results)
             voting_answer['ground_truth'] = data['ground_truth']
-            with open(f"./analysis/{get_cache_uuid(filename)}/conf_exp.json", "w") as f:
+            with open(f"./analysis/{get_cache_uuid(filename)}/conf_exp_budget{args.budget}.json", "w") as f:
                 json.dump(voting_answer, f)
             structured_conf = extract_structured_conf(completed_traces, processed_results)
             instance_accuracy = compute_instance_accuracy(completed_traces, processed_results, data['ground_truth'])
@@ -377,7 +400,7 @@ try:
                     macro_accuracies[conf_type][trace_type].append(
                         voting_answer[conf_type][trace_type][0] == voting_answer['ground_truth'])
             
-    plt.savefig(f"./analysis/conf_accuracy_scatter.png")
+    plt.savefig(f"./analysis/conf_accuracy_scatter_budget{args.budget}.png")
     plt.close(fig)
     # Calculate average accuracy for all combinations
     for conf_type in ["max_conf", "min_conf", "avg_conf"]:
@@ -386,7 +409,7 @@ try:
 
     macro_accuracies["combined"]["metadata"] = [MODEL_PATH, WINDOW_SIZE, PROMPT_VERSION_MAP[PROMPT_VERSION]]
     macro_accuracies["deepconf_accuracy"] = np.mean(deepconf_correctness)
-    with open(f"./analysis/accuracy_results.json", "w") as f:
+    with open(f"./analysis/accuracy_results_budget{args.budget}.json", "w") as f:
         json.dump(macro_accuracies, f)
 
 

@@ -1,5 +1,6 @@
 from dynasor.core.evaluator import math_equal
 import numpy as np
+import copy
 
 def extract_answer(text):
     """Extract boxed answer from text"""
@@ -75,12 +76,13 @@ def locate_answer_conf(token_ids, confs, extracted_answer, text, tokenizer):
     """Locate the answer in the text and return the corresponding confidence scores"""
     # If no answer was extracted, return an empty list
     assert len(token_ids) == len(confs), "confs length should be equal to token ids"
+    answer_tokens_with_conf = []
     if not extracted_answer:
-        return [0.0]
+        return [0.0], answer_tokens_with_conf
 
     # If no confidence scores available, return an empty list
     if not confs or len(confs) != len(token_ids):
-        return [0.0]
+        return [0.0], answer_tokens_with_conf
 
     # Find the extracted answer in the text
     # Start from the end since the answer is likely at the end of the text
@@ -89,7 +91,7 @@ def locate_answer_conf(token_ids, confs, extracted_answer, text, tokenizer):
         # The extracted_answer comes directly from text, so we can find it directly
         pos = text.rfind(extracted_answer)
         if pos == -1:
-            return [0.0]
+            return [0.0], answer_tokens_with_conf
 
         start_pos = pos
         end_pos = pos + len(extracted_answer)
@@ -104,23 +106,33 @@ def locate_answer_conf(token_ids, confs, extracted_answer, text, tokenizer):
     # Find the tokens that correspond to the extracted answer
     text_before_answer = text[:start_pos]
     tokens_before_answer = tokenizer.tokenize(text_before_answer)
-    start_token_idx = len(tokens_before_answer) - 1
+    start_token_idx = len(tokens_before_answer)
 
     text_with_answer = text[:end_pos]
     tokens_with_answer = tokenizer.tokenize(text_with_answer)
     end_token_idx = len(tokens_with_answer)
 
-    # # [Debug] Decode the tokens to map them to the answer
-    # if tokenizer is not None:
-    #     # Get the actual token IDs from the model output
-    #     answer_token_ids = token_ids[start_token_idx:end_token_idx]
+    # [Debug] Decode the tokens to map them to the answer
+    # Get the actual token IDs from the model output
+    answer_token_ids = token_ids[start_token_idx:end_token_idx]
 
-    #     # Decode the answer tokens to verify they match the extracted_answer
-    #     decoded_answer = tokenizer.decode(answer_token_ids)
-    #     print(decoded_answer, extracted_answer)
+    # Decode the answer tokens to verify they match the extracted_answer
+    decoded_answer = [tokenizer.decode(token_id) for token_id in answer_token_ids]
+# Save the decoded token and confidence to a file
+    # Create a list of dictionaries with token and confidence info
+    
+    try:
+        for i, (token, conf) in enumerate(zip(decoded_answer, confs[start_token_idx:end_token_idx])):
+            answer_tokens_with_conf.append({
+                "index": i,
+                "token": token,
+                "confidence": conf
+            })
+    except Exception as e:
+        print(f"Error creating token confidence data: {str(e)}")
 
     # Return the confidence scores for the answer tokens
-    return confs[start_token_idx:end_token_idx]
+    return confs[start_token_idx:end_token_idx], answer_tokens_with_conf
 
 def process_output(output, ground_truth, window_size, append_prefix='', tokenizer=None):
     """Process a single vLLM output"""
@@ -141,7 +153,7 @@ def process_output(output, ground_truth, window_size, append_prefix='', tokenize
         except:
             is_correct = str(extracted_answer) == str(ground_truth)
     
-    answer_conf = locate_answer_conf(token_ids, confs, extracted_answer, text, tokenizer)
+    answer_conf, answer_token_conf = locate_answer_conf(token_ids, confs, extracted_answer, text, tokenizer)
 
     return {
         "stop_reason": output.finish_reason,
@@ -155,8 +167,32 @@ def process_output(output, ground_truth, window_size, append_prefix='', tokenize
         "group_confs": sliding_window,
         "min_conf": min(sliding_window) if sliding_window else 0,
         "extracted_answer": extracted_answer,
+        "answer_token_conf": answer_token_conf,
         "is_correct": is_correct,
     }
+
+def recompute_traces(traces, tokenizer):
+    new_traces = []
+    for trace in traces:
+        new_trace = copy.deepcopy(trace)
+        'stop_reason', 'text', 'token_ids', 'num_tokens', 'confs', 'avg_conf', 'max_conf', 'min_conf', 'group_confs', 'extracted_answer', 'is_correct'
+        text = new_trace['text']
+        token_ids = new_trace['token_ids']
+        confs = new_trace['confs']
+        extracted_answer = new_trace['extracted_answer']
+        answer_conf, answer_token_conf = locate_answer_conf(token_ids, confs, extracted_answer, text, tokenizer)
+        try:
+            new_trace['avg_conf'] = np.mean(answer_conf)
+            new_trace['max_conf'] = np.max(answer_conf)
+            new_trace['min_conf'] = np.min(answer_conf)
+        except Exception:
+            new_trace['avg_conf'] = 0
+            new_trace['max_conf'] = 0
+            new_trace['min_conf'] = 0
+        new_trace["answer_token_conf"] = answer_token_conf
+        new_traces.append(new_trace)
+    return new_traces
+
 
 
 def process_batch_results(batch_outputs, ground_truth, window_size, prefix='', tokenizer=None):

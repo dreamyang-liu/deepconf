@@ -118,7 +118,7 @@ def locate_answer_conf(token_ids, confs, extracted_answer, text, tokenizer):
 
     # Decode the answer tokens to verify they match the extracted_answer
     decoded_answer = [tokenizer.decode(token_id) for token_id in answer_token_ids]
-# Save the decoded token and confidence to a file
+    # Save the decoded token and confidence to a file
     # Create a list of dictionaries with token and confidence info
     
     try:
@@ -155,15 +155,24 @@ def process_output(output, ground_truth, window_size, append_prefix='', tokenize
     
     answer_conf, answer_token_conf = locate_answer_conf(token_ids, confs, extracted_answer, text, tokenizer)
 
+    try:
+        avg_conf = np.mean(answer_conf)
+        max_conf = np.max(answer_conf)
+        min_conf = np.min(answer_conf)
+    except Exception:
+        avg_conf = 0
+        max_conf = 0
+        min_conf = 0
+
     return {
         "stop_reason": output.finish_reason,
         "text": text,
         "token_ids": token_ids,
         "num_tokens": len(token_ids) if token_ids else 0,
         "confs": confs,
-        "avg_conf": 0 if not extracted_answer else np.mean(answer_conf),
-        "max_conf": 0 if not extracted_answer else np.max(answer_conf) ,
-        "min_conf": 0 if not extracted_answer else np.min(answer_conf),
+        "avg_conf": avg_conf,
+        "max_conf": max_conf,
+        "min_conf": min_conf,
         "group_confs": sliding_window,
         "min_conf": min(sliding_window) if sliding_window else 0,
         "extracted_answer": extracted_answer,
@@ -175,7 +184,6 @@ def recompute_traces(traces, tokenizer):
     new_traces = []
     for trace in traces:
         new_trace = copy.deepcopy(trace)
-        'stop_reason', 'text', 'token_ids', 'num_tokens', 'confs', 'avg_conf', 'max_conf', 'min_conf', 'group_confs', 'extracted_answer', 'is_correct'
         text = new_trace['text']
         token_ids = new_trace['token_ids']
         confs = new_trace['confs']

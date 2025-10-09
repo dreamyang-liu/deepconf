@@ -271,9 +271,11 @@ def parse_args():
     parser = argparse.ArgumentParser(description='Process a single question with DeepConf')
     parser.add_argument('--qid', type=int, help='Question ID to process (0-based index)')
     parser.add_argument('--rid', type=str, help='Run ID for file naming')
+    parser.add_argument('--budget', type=int, help='Total budget')
     parser.add_argument('--use_predefined_threshold', action='store_true', help='Use predefined confidence threshold instead of computing from warmup')
     return parser.parse_args()
 
 if __name__ == "__main__":
     args = parse_args()
+    TOTAL_BUDGET = args.budget
     result = main(args.qid, args.rid, args.use_predefined_threshold)

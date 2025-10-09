@@ -1,11 +1,13 @@
 set -ex
-for rid in {0..7}; do
-    for qid in {0..29}; do
-        if [ -f "./outputs/deepconf_qid${qid}_rid${rid}"* ]; then
-            echo "File deepconf_qid${qid}_rid${rid} already exists, skipping."
-            continue
-        fi
-        # python deepconf-baseline.py --qid $qid --rid $rid
-        python deepconf-online.py --qid $qid --rid $rid
+for rid in {0..0}; do
+    for budget in 32 64 128 256 512; do
+        for qid in {0..29}; do
+            if [ -f "./outputs/deepconf_qid${qid}_rid${rid}"* ]; then
+                echo "File deepconf_qid${qid}_rid${rid} already exists, skipping."
+                continue
+            fi
+            # python deepconf-baseline.py --qid $qid --rid $rid
+            python deepconf-online.py --qid $qid --rid $rid --budget $budget
+        done
     done
 done

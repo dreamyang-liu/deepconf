@@ -1,6 +1,6 @@
 set -ex
 for rid in {0..0}; do
-    for budget in 32 64 128 256 512; do
+    for budget in 256 512; do
         for qid in {0..29}; do
             if [ -f "./outputs/deepconf_qid${qid}_rid${rid}"* ]; then
                 echo "File deepconf_qid${qid}_rid${rid} already exists, skipping."

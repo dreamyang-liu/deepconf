@@ -1,0 +1,17 @@
+{
+  "answers": {
+    "890": 497,
+    "9000": 7,
+    "910": 3,
+    "990": 2,
+    "14": 1,
+    "810": 1,
+    "28": 1
+  },
+  "ground_truth": "890",
+  "deepconf_token_stats": {
+    "total_tokens": 9026658,
+    "total_traces_count": 512,
+    "avg_tokens_per_trace": 17630.19140625
+  }
+}

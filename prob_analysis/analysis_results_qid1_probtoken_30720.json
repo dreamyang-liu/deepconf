@@ -1,0 +1,11 @@
+{
+  "answers": {
+    "3375": 512
+  },
+  "ground_truth": "3375",
+  "deepconf_token_stats": {
+    "total_tokens": 4772041,
+    "total_traces_count": 512,
+    "avg_tokens_per_trace": 9320.392578125
+  }
+}

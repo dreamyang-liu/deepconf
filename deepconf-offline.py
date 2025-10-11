@@ -11,14 +11,14 @@ import time
 import pickle
 import numpy as np
 from datetime import datetime
-from helper import equal_func, prepare_prompt_gpt, weighted_majority_vote, process_batch_results_offline
+from helper import equal_func, prepare_prompt_gpt, weighted_majority_vote, process_batch_results_offline, prepare_prompt
 import os
 import argparse
 
 # Configuration
-MODEL_PATH = "openai/gpt-oss-120b"
+MODEL_PATH = "deepseek-ai/DeepSeek-R1-0528-Qwen3-8B"
 MAX_TOKENS = 130000
-DATASET_FILE = "aime25.jsonl"
+DATASET_FILE = "hmmt_feb_2025.jsonl"
 
 # Algorithm parameters
 TOTAL_BUDGET = 512
@@ -77,7 +77,8 @@ def main(qid, rid):
     # Prepare prompt for the specific question
     print("Preparing prompt...")
     prompt_prep_start = time.time()
-    prompt, ground_truth = prepare_prompt_gpt(question_data, tokenizer, REASONING_EFFORT)
+    prompt, ground_truth = prepare_prompt(question_data, tokenizer)
+    # prompt, ground_truth = prepare_prompt_gpt(question_data, tokenizer, REASONING_EFFORT)
     prompt_prep_time = time.time() - prompt_prep_start
     print(f"Prepared prompt in {prompt_prep_time:.2f} seconds")
 

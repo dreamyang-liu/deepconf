@@ -1,0 +1,16 @@
+{
+  "answers": {
+    "3": 413,
+    "2": 79,
+    "1": 16,
+    "sqrt(6)": 2,
+    "4": 1,
+    "1.70000000000000": 1
+  },
+  "ground_truth": "\\frac{9 \\sqrt{23}}{23}",
+  "deepconf_token_stats": {
+    "total_tokens": 17494854,
+    "total_traces_count": 512,
+    "avg_tokens_per_trace": 34169.63671875
+  }
+}

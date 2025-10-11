@@ -1,0 +1,19 @@
+{
+  "answers": {
+    "103": 500,
+    "82": 3,
+    "111": 3,
+    "22": 1,
+    "83": 1,
+    "181": 1,
+    "211": 1,
+    "1333": 1,
+    "Eq(1 + 21 + 81, 103)": 1
+  },
+  "ground_truth": "103",
+  "deepconf_token_stats": {
+    "total_tokens": 4338223,
+    "total_traces_count": 512,
+    "avg_tokens_per_trace": 8473.091796875
+  }
+}

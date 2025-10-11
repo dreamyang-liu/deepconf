@@ -1,0 +1,18 @@
+{
+  "answers": {
+    "0": 505,
+    "-Sum(floor(2025/k), (k, 1, 1000)) + Sum(floor(2025/(0.5 - m)), (m, 1, 1000)) + 4050": 1,
+    "404700": 1,
+    "-2025": 1,
+    "1012500": 1,
+    "-4047": 1,
+    "405000": 1,
+    "-Sum(floor(2025/(k - 0.5)), (k, 1, 1000)) + Sum(floor(2025/(k + 0.5)), (k, 1, 1000)) + 4050": 1
+  },
+  "ground_truth": "-984",
+  "deepconf_token_stats": {
+    "total_tokens": 12604796,
+    "total_traces_count": 512,
+    "avg_tokens_per_trace": 24618.7421875
+  }
+}

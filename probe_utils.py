@@ -29,7 +29,7 @@ def get_vllm():
     if ENGINE is None:
         ENGINE = LLM(
             model=MODEL_PATH,
-            tensor_parallel_size=1,
+            tensor_parallel_size=4,
             enable_prefix_caching=True,
             trust_remote_code=True,
         )
@@ -346,49 +346,15 @@ def process(output, qid, prob_token, window_size):
 
     print(f"Results saved to analysis_results_{qid}_probtoken_{prob_token}_windowsize_{window_size}.json")
 
-import multiprocessing as mp
-import os
-import time
-
-def worker(gpu_id, output_group, window_sizes, prob_tokens):
-    os.environ["CUDA_VISIBLE_DEVICES"] = str(gpu_id)
-    for output in output_group:
-        for window_size in window_sizes:
-            for prob_token in prob_tokens:
-                if window_size > prob_token:
-                    continue
-                try:
-                    process(output[0], output[1], prob_token, window_size)
-                except Exception as e:
-                    print(f"GPU {gpu_id} Error:", e)
 
 if __name__ == "__main__":
     outputs = load_outputs("./outputs")
-    # Define parameters
-    window_sizes = [1024, 2048]
-    prob_tokens = [512 * i for i in range(4, 129)]
-
-    # Split work for 4 GPUs
-    num_gpus = 4
-    outputs_per_gpu = len(outputs) // num_gpus
-    output_groups = [outputs[i:i+outputs_per_gpu] for i in range(0, len(outputs), outputs_per_gpu)]
-
-    # Ensure all outputs are assigned (handle remainder)
-    for i in range(len(outputs) % num_gpus):
-        output_groups[i].append(outputs[num_gpus * outputs_per_gpu + i])
-
-    # Create and start processes
-    processes = []
-    for gpu_id in range(num_gpus):
-        p = mp.Process(
-            target=worker,
-            args=(gpu_id, output_groups[gpu_id], window_sizes, prob_tokens)
-        )
-        processes.append(p)
-        p.start()
-        # Small delay to avoid CUDA initialization conflicts
-        time.sleep(2)
-
-    # Wait for all processes to complete
-    for p in processes:
-        p.join()
+    for window_size in [1024, 2048]:
+        for prob_token in [512 * i for i in range(4, 129)]:
+            if window_size > prob_token:
+                continue
+            for output in outputs:
+                try:
+                    process(output[0], output[1], prob_token, window_size)
+                except Exception as e:
+                    print(e)

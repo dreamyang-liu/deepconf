@@ -29,7 +29,7 @@ def get_vllm():
     if ENGINE is None:
         ENGINE = LLM(
             model=MODEL_PATH,
-            tensor_parallel_size=4,
+            tensor_parallel_size=8,
             enable_prefix_caching=True,
             trust_remote_code=True,
         )
@@ -350,7 +350,7 @@ def process(output, qid, prob_token, window_size):
 if __name__ == "__main__":
     outputs = load_outputs("./outputs")
     for window_size in [1024, 2048]:
-        for prob_token in [512 * i for i in range(4, 129)]:
+        for prob_token in [2048 * i for i in range(4, 17)]:
             if window_size > prob_token:
                 continue
             for output in outputs:

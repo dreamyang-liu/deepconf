@@ -1,0 +1,10 @@
+,is_correct,is_correct,is_correct,num_votes,avg_confidence
+,count,sum,mean,mean,mean
+voting_method,,,,,
+bottom_window_weighted,17,12,0.7059,511.9412,9.2889
+majority,17,12,0.7059,511.9412,0.0
+mean_confidence_weighted,17,12,0.7059,511.9412,10.9859
+min_window_weighted,17,12,0.7059,511.9412,9.0127
+tail_confidence_weighted,17,12,0.7059,511.9412,9.9669
+top10_bottom_window_filtered,17,12,0.7059,52.0,10.5366
+top10_tail_filtered,17,12,0.7059,52.0,11.4591

@@ -1,6 +1,5 @@
 import os
 import json
-import argparse
 
 folder_path = "/home/ubuntu/projects/deepconf/deepconf/prob_analysis"
 window_size = 1024
@@ -36,7 +35,7 @@ for prob_token in prob_tokens:
                 # metric = analysis_result["count_accuracy"]
                 metric = analysis_result["normalized_accuracy"]
 
-                count_accuracies_by_qid[q].append((metric, analysis_result["entropy_metrics"]["entropy_mean_window"]))
+                count_accuracies_by_qid[q].append((metric, analysis_result["entropy_metrics"]["entropy_mean_window"], correct_answer==list(analysis_result["answers"].keys())[0]))
         except FileNotFoundError:
             # Handle missing files by appending None
             # print(f"analysis_results_qid{q}_probtoken_{prob_token}_windowsize_{window_size}.json")
@@ -48,30 +47,34 @@ for prob_token in prob_tokens:
 # Plot each question in a separate figure
 for q in qid:
     fig, ax1 = plt.subplots(figsize=(12, 8))
-    
     # Create second y-axis
     ax2 = ax1.twinx()
-    
-    # Plot c[0] on left y-axis
-    ax1.plot(prob_tokens, [c[0] for c in count_accuracies_by_qid[q]], marker='.', linestyle='--', alpha=0.7, color='blue', label='Accuracy')
-    # Plot c[1] on right y-axis  
+
+    # Determine colors based on count_accuracies_by_qid[q][2]
+    colors = ['green' if c[2] else 'red' for c in count_accuracies_by_qid[q]]
+
+    # Plot c[0] on left y-axis with conditional colors
+    ax1.scatter(prob_tokens, [c[0] for c in count_accuracies_by_qid[q]], c=colors, marker='o', alpha=0.7, label='Accuracy')
+    ax1.plot(prob_tokens, [c[0] for c in count_accuracies_by_qid[q]], linestyle='--', alpha=0.7, color='blue')
+
+    # Plot c[1] on right y-axis
     ax2.plot(prob_tokens, [c[1] for c in count_accuracies_by_qid[q]], marker='o', linestyle='-', alpha=0.7, color='red', label='Entropy')
-    
+
     # Set labels and titles
     ax1.set_xlabel('Prob Token')
     ax1.set_ylabel('Accuracy values', color='blue')
     ax2.set_ylabel('Entropy values', color='red')
     ax1.set_title(f'{METRIC_TITLE} vs Prob Token - QID {q} (Window Size: {window_size})')
-    
+
     # Color the y-axis labels to match the data
     ax1.tick_params(axis='y', labelcolor='blue')
     ax2.tick_params(axis='y', labelcolor='red')
-    
+
     # Combine legends from both axes
     lines1, labels1 = ax1.get_legend_handles_labels()
     lines2, labels2 = ax2.get_legend_handles_labels()
     ax1.legend(lines1 + lines2, labels1 + labels2, loc='best')
-    
+
     ax1.grid(True)
     plt.savefig(os.path.join(folder_path, f'../prob_plots/{"_".join(METRIC_TITLE.lower().split(" "))}_plot_qid_{q}_windowsize_{window_size}.png'))
     plt.show()

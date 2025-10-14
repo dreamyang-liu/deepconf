@@ -6,6 +6,7 @@ import os
 import json
 import numpy as np
 
+from functools import cache
 from vllm import LLM, SamplingParams
 from transformers import AutoTokenizer
 from helper import extract_answer
@@ -57,6 +58,24 @@ def get_tokenizer():
         TOKENIZER = AutoTokenizer.from_pretrained(MODEL_PATH, trust_remote_code=True)
     return TOKENIZER
 
+
+@cache
+def get_template_length(question):
+    # Format prompt using chat template
+    messages = [
+        {"role": "system", "content": "该助手为DeepSeek-R1，由深度求索公司创造。\n今天是2025年5月28日，星期一。\n"},
+        {"role": "user", "content": question},
+    ]
+
+    tokenizer = get_tokenizer()
+    
+    full_prompt = tokenizer.apply_chat_template(
+        messages,
+        tokenize=False,
+        add_generation_prompt=True
+    )
+    existing_prompt_token_count = len(tokenizer.encode(full_prompt, add_special_tokens=False))
+    return existing_prompt_token_count
 
 def process_output_offline(output, ground_truth, window_size):
     """Process a single vLLM output"""
@@ -118,8 +137,8 @@ def prepare_prompt(question, dropped_thinking_trace, prob_token):
     full_prompt += dropped_thinking_trace
     # Tokenize the prompt and truncate to the specified token limit
     tokens = tokenizer.encode(full_prompt, add_special_tokens=False)
-    if len(tokens) > prob_token:
-        tokens = tokens[:prob_token]
+    if len(tokens) > get_template_length(question) + prob_token:
+        tokens = tokens[:get_template_length(question) + prob_token]
         full_prompt = tokenizer.decode(tokens)
     return full_prompt + PROMPT_VERSION_MAP[PROMPT_VERSION]
 
@@ -264,7 +283,9 @@ def process(output, qid, prob_token, window_size):
     question = output['question']
     traces = output['all_traces']
     batch_messages = prepare_batch_messages(question, traces, prob_token)
-    batch_confs = [trace['confs'] for trace in traces]
+    batch_confs = [trace['confs'][:prob_token] for trace in traces]
+    assert all(len(conf) <= prob_token for conf in batch_confs)
+    answers = probe_answers(batch_messages)
 
     # Calculate confidence metrics for each trace
     conf_stats = []
@@ -285,7 +306,7 @@ def process(output, qid, prob_token, window_size):
                 "mean_window_conf": np.mean(confs) if confs else 0,
                 "last_window_conf": np.mean(confs) if confs else 0
             })
-    answers = probe_answers(batch_messages)
+    
     answer_dict = defaultdict(lambda: {"count": 0, "min_window_conf": 0, "max_window_conf": 0, "mean_window_conf": 0, "last_window_conf": 0})
     for i, answer in enumerate(answers):
         answer_key = answer
@@ -350,10 +371,10 @@ def process(output, qid, prob_token, window_size):
 if __name__ == "__main__":
     outputs = load_outputs("./outputs")
     for window_size in [1024, 2048]:
-        for prob_token in [2048 * i for i in range(4, 17)]:
-            if window_size > prob_token:
-                continue
-            for output in outputs:
+        for output in outputs:
+            for prob_token in [2048 * i for i in range(1, 17)]:
+                if window_size > prob_token:
+                    continue
                 try:
                     process(output[0], output[1], prob_token, window_size)
                 except Exception as e:

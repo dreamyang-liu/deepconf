@@ -7,11 +7,11 @@ import matplotlib.pyplot as plt
 
 import glob
 
-prob_files = glob.glob("./prob_analysis/analysis_results_qid29_probtoken_*_windowsize_1024.json")
+prob_files = glob.glob("/home/ubuntu/projects/deepconf/deepconf/prob_analysis/analysis_results_qid26_probtoken_*_windowsize_1024.json")
 
 prob_tokens = sorted([int(prob_file.split("_")[5]) for prob_file in prob_files])
 
-qid = list(range(30))
+qid = [0, 2, 9, 15, 20, 24, 26]
 count_accuracies_by_qid = {q: [] for q in qid}
 
 METRIC_TITLE = "Mean Window Conf Entropy VS Accuracy"
@@ -33,9 +33,9 @@ for prob_token in prob_tokens:
                 normalized_accuracy = correct_mean_conf / total_mean_conf if total_mean_conf > 0 else 0
                 analysis_result["normalized_accuracy"] = normalized_accuracy
                 # metric = analysis_result["count_accuracy"]
-                metric = analysis_result["normalized_accuracy"]
+                metric = analysis_result["count_accuracy"]
 
-                count_accuracies_by_qid[q].append((metric, analysis_result["entropy_metrics"]["entropy_mean_window"], correct_answer==list(analysis_result["answers"].keys())[0]))
+                count_accuracies_by_qid[q].append((metric, analysis_result["entropy_metrics"]["entropy_count"], correct_answer==list(analysis_result["answers"].keys())[0]))
         except FileNotFoundError:
             # Handle missing files by appending None
             # print(f"analysis_results_qid{q}_probtoken_{prob_token}_windowsize_{window_size}.json")
@@ -76,5 +76,5 @@ for q in qid:
     ax1.legend(lines1 + lines2, labels1 + labels2, loc='best')
 
     ax1.grid(True)
-    plt.savefig(os.path.join(folder_path, f'../prob_plots/{"_".join(METRIC_TITLE.lower().split(" "))}_plot_qid_{q}_windowsize_{window_size}.png'))
+    plt.savefig(os.path.join(folder_path, f'/home/ubuntu/projects/deepconf/deepconf/prob_plots/{"_".join(METRIC_TITLE.lower().split(" "))}_plot_qid_{q}_windowsize_{window_size}.png'))
     plt.show()

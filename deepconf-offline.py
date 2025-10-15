@@ -21,7 +21,7 @@ MAX_TOKENS = 130000
 DATASET_FILE = "hmmt_feb_2025.jsonl"
 
 # Algorithm parameters
-TOTAL_BUDGET = 512
+TOTAL_BUDGET = 1024 
 WINDOW_SIZE = 2048
 REASONING_EFFORT = 'high'
 

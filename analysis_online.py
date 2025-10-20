@@ -100,6 +100,7 @@ def load_and_analyze_results(outputs_dir="outputs"):
             # Load file
             with open(filepath, 'rb') as f:
                 data = pickle.load(f)
+            print(data["voted_answer"], data['ground_truth'])
             
             # Extract only what we need
             metrics = extract_key_metrics(data, method_type, filename, qid, rid)
@@ -197,13 +198,22 @@ def analyze_results(df):
         print(question_summary)
     
     return df
+import argparse
 
 def main():
     """Main analysis function"""
     print("Loading DeepConf results...")
     
     # Load and process results efficiently
-    df = load_and_analyze_results()
+    # Parse command line arguments
+    parser = argparse.ArgumentParser(description='Analyze DeepConf results')
+    parser.add_argument('--output_path', type=str, default='outputs',
+                       help='Path to directory containing output pickle files (default: outputs)')
+    args = parser.parse_args()
+
+    # Load and process results efficiently
+    df = load_and_analyze_results(args.output_path)
+    print(df.columns)
     
     if df.empty:
         print("No valid results found!")

@@ -30,7 +30,7 @@ def get_vllm():
     if ENGINE is None:
         ENGINE = LLM(
             model=MODEL_PATH,
-            tensor_parallel_size=8,
+            tensor_parallel_size=1,
             enable_prefix_caching=True,
             trust_remote_code=True,
         )
@@ -137,10 +137,12 @@ def prepare_prompt(question, dropped_thinking_trace, prob_token):
     full_prompt += dropped_thinking_trace
     # Tokenize the prompt and truncate to the specified token limit
     tokens = tokenizer.encode(full_prompt, add_special_tokens=False)
+    token_usage = 0
     if len(tokens) > get_template_length(question) + prob_token:
         tokens = tokens[:get_template_length(question) + prob_token]
         full_prompt = tokenizer.decode(tokens)
-    return full_prompt + PROMPT_VERSION_MAP[PROMPT_VERSION]
+        token_usage = len(tokens)
+    return full_prompt + PROMPT_VERSION_MAP[PROMPT_VERSION], token_usage
 
 def load_outputs(outputs_path):
     outputs = []
@@ -165,9 +167,12 @@ def get_stats(results: List[Tuple[str, float]]) -> Dict[str, float]:
 
 def prepare_batch_messages(question, traces, prob_token):
     batch_messages = []
+    token_usages = []
     for trace in traces:
-        batch_messages.append(prepare_prompt(question, trace['text'], prob_token))
-    return batch_messages
+        message, token_usage = prepare_prompt(question, trace['text'], prob_token)
+        batch_messages.append(message)
+        token_usages.append(token_usage)
+    return batch_messages, token_usages
 
 def probe_answers(messages):
     engine = get_vllm()
@@ -282,7 +287,7 @@ def process(output, qid, prob_token, window_size):
 
     question = output['question']
     traces = output['all_traces']
-    batch_messages = prepare_batch_messages(question, traces, prob_token)
+    batch_messages, _ = prepare_batch_messages(question, traces, prob_token)
     batch_confs = [trace['confs'][:prob_token] for trace in traces]
     assert all(len(conf) <= prob_token for conf in batch_confs)
     answers = probe_answers(batch_messages)

@@ -1,0 +1,22 @@
+{
+  "question": "Equilateral triangles $\\triangle A B C$ and $\\triangle D E F$ are drawn such that points $B, E, F$, and $C$ lie on a line in this order, and point $D$ lies inside triangle $\\triangle A B C$. If $B E=14, E F=15$, and $F C=16$, compute $A D$.",
+  "ground_truth": "26",
+  "extracted_answers": [
+    "y, but typically it's in order, but even if not, the sides are still between the vertices.\n\nPerhaps the triangle DEF has sides DE, EF, FD, but EF is not necessarily 15 if it's not the side, but no, in",
+    "26",
+    "26",
+    "26",
+    "26",
+    "26",
+    "26"
+  ],
+  "probe_answers": [
+    "26",
+    "26",
+    "26",
+    "26",
+    "26",
+    "26",
+    "26"
+  ]
+}

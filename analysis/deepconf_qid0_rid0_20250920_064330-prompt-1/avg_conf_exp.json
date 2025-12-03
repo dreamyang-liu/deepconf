@@ -1,1 +1,0 @@
-{"completed_traces_voting_answer": ["2^{99}", {"2^{99}": 1624.2611666666664}], "truncated_traces_voting_answer": ["2^{99}", {"2^{99}": 2416.524166666668, "\\dfrac{1}{100}": 11.6452, "0": 8.8675}], "combined_traces_voting_answer": ["2^{99}", {"2^{99}": 4040.785333333334, "\\dfrac{1}{100}": 11.6452, "0": 8.8675}], "ground_truth": "2^{99}"}

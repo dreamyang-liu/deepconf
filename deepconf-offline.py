@@ -67,7 +67,7 @@ def main(qid, rid):
     llm_init_start = time.time()
     llm = LLM(
         model=MODEL_PATH,
-        tensor_parallel_size=len(os.environ.get("CUDA_VISIBLE_DEVICES", "0").split(",")),
+        tensor_parallel_size=8,
         enable_prefix_caching=True,
         trust_remote_code=True,
     )

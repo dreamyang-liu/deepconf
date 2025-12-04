@@ -24,6 +24,8 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from vllm import LLM, SamplingParams
 from transformers import AutoTokenizer
 from helper import extract_answer, equal_func
+from functools import cache
+import glob
 
 # Model configuration
 MODEL_PATH = "deepseek-ai/DeepSeek-R1-0528-Qwen3-8B"
@@ -46,7 +48,7 @@ def get_inject_prompt_v2(candidates=None):
         candidates_list = ", ".join([f"{i+1}. {cand}" for i, cand in enumerate(candidates)])
         return f". Candidates: {candidates_list}. I'll select from these OR give my own answer if my reasoning strongly supports a different conclusion:</think>\n\\boxed"
 
-
+@cache
 def get_vllm():
     """Initialize and return vLLM engine (singleton)"""
     global ENGINE
@@ -59,7 +61,7 @@ def get_vllm():
         )
     return ENGINE
 
-
+@cache
 def get_tokenizer():
     """Initialize and return tokenizer (singleton)"""
     global TOKENIZER
@@ -100,7 +102,7 @@ def extract_candidates_from_traces(traces, min_count=0, prob_token=None):
         if prob_token is not None:
             num_tokens = trace.get('num_tokens', 0)
             # Skip traces that don't have enough tokens to generate the answer
-            if num_tokens < prob_token:
+            if num_tokens > prob_token:
                 continue
         
         # Count this answer
@@ -303,7 +305,7 @@ def process_data(data, prob_token=None, output_path=None):
     """
     question = data['question']
     ground_truth = data.get('ground_truth')
-    traces = data['all_traces']
+    traces = data['final_traces']
     
     print(f"\nProcessing question: {question[:100]}...")
     print(f"Ground truth: {ground_truth}")
@@ -366,26 +368,59 @@ def process_data(data, prob_token=None, output_path=None):
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Dynamic Programming Probe for DeepConf')
-    parser.add_argument('--input', type=str, required=True,
-                        help='Input pickle file path')
-    parser.add_argument('--output', type=str,
-                        help='Output JSON file path (optional)')
-    parser.add_argument('--prob_token', type=int, default=64000,
-                        help='Token limit for thinking traces (default: 64000)')
+    # parser = argparse.ArgumentParser(description='Dynamic Programming Probe for DeepConf')
+    # parser.add_argument('--input', type=str, required=True,
+    #                     help='Input pickle file path')
+    # parser.add_argument('--output', type=str,
+    #                     help='Output JSON file path (optional)')
+    # parser.add_argument('--prob_token', type=int, default=64000,
+    #                     help='Token limit for thinking traces (default: 64000)')
     
-    args = parser.parse_args()
-    
-    # Load data
-    data = load_data(args.input)
-    
-    # Process
-    results = process_data(
-        data,
-        prob_token=args.prob_token,
-        output_path=args.output
-    )
-    
+    # args = parser.parse_args()
+    # Process all data files in the outputs-online folder
+    input_dir = "/home/ec2-user/projects/deepconf/outputs-online"
+    output_dir = "/home/ec2-user/projects/deepconf/dp_probe_results"
+    os.makedirs(output_dir, exist_ok=True)
+    prob_token = 64000
+
+    # Find all pkl files in subdirectories
+    pkl_files = glob.glob(os.path.join(input_dir, "*/*.pkl"))
+    print(f"Found {len(pkl_files)} pkl files to process")
+
+    all_results = []
+
+    for pkl_file in pkl_files:
+        try:
+            print(f"\n{'='*80}")
+            print(f"Processing: {pkl_file}")
+            print(f"{'='*80}")
+
+            # Extract question ID from path for output naming
+            qid = os.path.basename(os.path.dirname(pkl_file))
+            # Extract original filename without extension for output naming
+            original_filename = os.path.splitext(os.path.basename(pkl_file))[0]
+            output_file = os.path.join(output_dir, f"{original_filename}_dp_probe.json")
+
+            # Load and process data
+            data = load_data(pkl_file)
+            results = process_data(
+                data,
+                prob_token=prob_token,
+                output_path=output_file
+            )
+            all_results.append(results)
+
+        except Exception as e:
+            print(f"Error processing {pkl_file}: {e}")
+            continue
+
+    # Save summary results
+    summary_file = os.path.join(output_dir, "summary_results.json")
+    with open(summary_file, 'w') as f:
+        json.dump(all_results, f, indent=2)
+
+    print(f"\n\nProcessed {len(all_results)} files successfully")
+    print(f"Summary saved to {summary_file}")
     return results
 
 

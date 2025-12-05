@@ -17,11 +17,11 @@ import argparse
 
 # Configuration
 MODEL_PATH = "deepseek-ai/DeepSeek-R1-0528-Qwen3-8B"
-MAX_TOKENS = 130000
+MAX_TOKENS = 64000
 DATASET_FILE = "hmmt_feb_2025.jsonl"
 
 # Algorithm parameters
-TOTAL_BUDGET = 1024 
+TOTAL_BUDGET = 4096 
 WINDOW_SIZE = 2048
 REASONING_EFFORT = 'high'
 
@@ -93,10 +93,10 @@ def main(qid, rid):
     generation_start = time.time()
     sampling_params = SamplingParams(
         n=TOTAL_BUDGET,
-        temperature=1.0,
-        top_p=1.0,
-        top_k=40,
-        max_tokens=MAX_TOKENS,
+        temperature=0.6,
+        top_p=0.95,
+        top_k=-1,
+        max_tokens=64000,
         logprobs=20,
     )
 

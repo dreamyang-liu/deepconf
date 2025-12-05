@@ -213,18 +213,30 @@ def process_output_offline(output, ground_truth, window_size):
     }
 
 
+def process_single_output(args):
+    output, ground_truth, window_size = args
+    return process_output_offline(output, ground_truth, window_size)
+
 def process_batch_results_offline(batch_outputs, ground_truth, window_size):
     """Process batch results from vLLM for a single question"""
     question_outputs = batch_outputs[0].outputs
     
-    # Process all traces for this question
+    # Process all traces for this question using process pool
     traces = []
     total_tokens = 0
     
-    for output in question_outputs:
-        trace_data = process_output_offline(output, ground_truth, window_size)
-        traces.append(trace_data)
-        total_tokens += trace_data["num_tokens"]
+    from concurrent.futures import ProcessPoolExecutor
+    import multiprocessing
+
+    # Prepare arguments for parallel processing
+    args_list = [(output, ground_truth, window_size) for output in question_outputs]
+
+    # Use process pool for parallel processing
+    max_workers = min(len(question_outputs), 128)
+    with ProcessPoolExecutor(max_workers=max_workers) as executor:
+        traces = list(executor.map(process_single_output, args_list))
+
+    total_tokens = sum(trace["num_tokens"] for trace in traces)
     
     return {
         'traces': traces,

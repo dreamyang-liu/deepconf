@@ -95,8 +95,8 @@ def main(qid, rid):
         n=TOTAL_BUDGET,
         temperature=0.6,
         top_p=0.95,
-        top_k=-1,
-        max_tokens=64000,
+        # top_k=-1,
+        max_tokens=MAX_TOKENS,
         logprobs=20,
     )
 

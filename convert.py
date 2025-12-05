@@ -62,7 +62,6 @@ def convert_single_file(args_tuple):
         return (input_path, True, message)
         
     except Exception as e:
-        e.with_traceback()
         return (input_path, False, str(e))
 
 def main():
@@ -109,35 +108,38 @@ def main():
     # Prepare conversion arguments
     conversion_args = []
     for input_path in input_files:
-        # Create output path by replacing input_dir with output_dir and 'simple_' with ''
-        input_filename = os.path.basename(input_path)
-        output_filename = input_filename.replace('deepconf_simple_', 'deepconf_')
-        # Create output path with more descriptive filename including parameters
-        input_filename = os.path.basename(input_path)
-        # Extract question ID and run ID from filename
-        import re
-        qid_match = re.search(r'qid(\d+)', input_filename)
-        rid_match = re.search(r'rid(\d+)', input_filename)
-        date_match = re.search(r'(\d{8}_\d{6})', input_filename)
-        qid = qid_match.group(1) if qid_match else "unknown"
-        rid = rid_match.group(1) if rid_match else "unknown"
-        old_date = date_match.group(1) if date_match else ""
-        # Create new filename with parameters
-        from datetime import datetime
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        output_filename = f"deepconf_simple_qid{qid}_rid{rid}_{old_date}_online_w{args.warmup_traces}_p{args.confidence_percentile}_{timestamp}.pkl"
-        # Create directory structure
-        output_dir = os.path.join(args.output_dir, f"qid{qid}")
-        os.makedirs(output_dir, exist_ok=True)
-        output_path = os.path.join(output_dir, output_filename)
-        
-        conversion_args.append((
-            input_path,
-            output_path,
-            args.warmup_traces,
-            args.confidence_percentile,
-            args.window_size
-        ))
+        for i in range(12):
+            # Create output path by replacing input_dir with output_dir and 'simple_' with ''
+            input_filename = os.path.basename(input_path)
+            output_filename = input_filename.replace('deepconf_simple_', 'deepconf_')
+            # Create output path with more descriptive filename including parameters
+            input_filename = os.path.basename(input_path)
+            # Extract question ID and run ID from filename
+            import re
+            qid_match = re.search(r'qid(\d+)', input_filename)
+            rid_match = re.search(r'rid(\d+)', input_filename)
+            date_match = re.search(r'(\d{8}_\d{6})', input_filename)
+            qid = qid_match.group(1) if qid_match else "unknown"
+            rid = rid_match.group(1) if rid_match else "unknown"
+            old_date = date_match.group(1) if date_match else ""
+            # Create new filename with parameters
+            from datetime import datetime
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            output_filename = f"deepconf_simple_qid{qid}_rid{rid}_{old_date}_online_w{args.warmup_traces}_p{args.confidence_percentile}_{timestamp}.pkl"
+            # Create directory structure
+            output_dir = os.path.join(args.output_dir, f"qid{qid}")
+            os.makedirs(output_dir, exist_ok=True)
+            output_path = os.path.join(output_dir, output_filename)
+            
+            conversion_args.append((
+                input_path,
+                output_path,
+                args.warmup_traces,
+                args.confidence_percentile,
+                args.window_size
+            ))
+            import time
+            time.sleep(1)
     
     # Run conversions in parallel
     if args.workers == 1:
@@ -153,9 +155,12 @@ def main():
                 print(f"  ✗ Error: {result[2]}")
     else:
         # Multi-threaded
-        with mp.Pool(processes=args.workers) as pool:
+        from concurrent.futures import ThreadPoolExecutor
+        with ThreadPoolExecutor(max_workers=args.workers) as executor:
             results = []
-            for i, result in enumerate(pool.imap(convert_single_file, conversion_args), 1):
+            futures = [executor.submit(convert_single_file, conv_args) for conv_args in conversion_args]
+            for i, future in enumerate(futures, 1):
+                result = future.result()
                 results.append(result)
                 input_file = os.path.basename(result[0])
                 if result[1]:

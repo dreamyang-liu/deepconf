@@ -12,6 +12,8 @@ from collections import defaultdict
 import re
 from tqdm import tqdm
 
+TOKEN_LIMIT = 900000
+
 def parse_filename(filename):
     """Parse filename to extract method, qid, rid, timestamp"""
     # Pattern for simple method
@@ -50,11 +52,11 @@ def extract_key_metrics(result, method_type, filename, qid, rid):
         warmup_traces = result.get('warmup_traces', [])
         final_traces = result.get('final_traces', [])
 
-        warmup_count = len([t for t in warmup_traces if t.get('num_tokens', 0) <= 64000])
-        final_count = len([t for t in final_traces if t.get('num_tokens', 0) <= 64000])
+        warmup_count = len([t for t in warmup_traces if t.get('num_tokens', 0) <= TOKEN_LIMIT])
+        final_count = len([t for t in final_traces if t.get('num_tokens', 0) <= TOKEN_LIMIT])
 
-        warmup_tokens = sum(min(t.get('num_tokens', 0), 64000) for t in warmup_traces)
-        final_tokens = sum(min(t.get('num_tokens', 0), 64000) for t in final_traces)
+        warmup_tokens = sum(min(t.get('num_tokens', 0), TOKEN_LIMIT) for t in warmup_traces)
+        final_tokens = sum(min(t.get('num_tokens', 0), TOKEN_LIMIT) for t in final_traces)
 
         total_traces = warmup_count + final_count
         total_tokens = warmup_tokens + final_tokens
@@ -62,7 +64,7 @@ def extract_key_metrics(result, method_type, filename, qid, rid):
         # Get confidence metrics from final traces
         min_confs = []
         for trace in final_traces:
-            if trace.get('num_tokens', 0) <= 64000:
+            if trace.get('num_tokens', 0) <= TOKEN_LIMIT:
                 min_conf = trace.get('min_conf', None)
                 if min_conf is not None:
                     min_confs.append(min_conf)
@@ -210,8 +212,6 @@ def analyze_results(df):
         print("-"*40)
 
         for qid in sorted(df['question_id'].unique()):
-            if qid == 0:  # Skip unknown question IDs
-                continue
             qid_data = df[df['question_id'] == qid]
             accuracy = qid_data['is_voted_correct'].mean()
             ground_truth = qid_data['ground_truth'].iloc[0] if len(qid_data) > 0 else 'N/A'

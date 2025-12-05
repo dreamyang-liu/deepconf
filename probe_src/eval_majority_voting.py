@@ -151,33 +151,55 @@ def bootstrap_sample(traces, num_samples=512):
     indices = np.random.randint(0, len(traces), size=num_samples)
     return [traces[i] for i in indices]
 
-def analyze_bootstrap_experiment(result_data, ground_truth, num_bootstraps=16, bootstrap_size=512):
-    """Analyze experiment with bootstrap sampling"""
-    all_traces = result_data.get('all_traces', [])
+_TRACES = None
 
-    # Extract valid traces with answers
+def _init_worker(traces):
+    global _TRACES
+    _TRACES = traces
+
+def analyze_single_bootstrap(bootstrap_idx, ground_truth, bootstrap_size):
+    print(f"Bootstraping {bootstrap_idx}")
+    sampled_traces = bootstrap_sample(_TRACES, bootstrap_size)
+
+    if not sampled_traces:
+        return None
+
+    bootstrap_analysis = analyze_single_experiment({'all_traces': sampled_traces}, ground_truth)
+
+    if bootstrap_analysis:
+        for voting_method, result in bootstrap_analysis.items():
+            result['bootstrap_idx'] = bootstrap_idx
+            result['bootstrap_size'] = len(sampled_traces)
+        return bootstrap_analysis
+
+    return None
+
+def analyze_bootstrap_experiment(result_data, ground_truth, num_bootstraps=16, bootstrap_size=512):
+    all_traces = result_data.get('all_traces', [])
+    print("Start bootstraping....")
+
     valid_traces = [trace for trace in all_traces if trace.get('extracted_answer')]
 
     if not valid_traces:
         return None
 
+    from concurrent.futures import ProcessPoolExecutor, as_completed
+
     bootstrap_results = []
+    max_workers = min(16, os.cpu_count())
 
-    for bootstrap_idx in range(num_bootstraps):
-        # Bootstrap sample
-        sampled_traces = bootstrap_sample(valid_traces, bootstrap_size)
+    with ProcessPoolExecutor(max_workers=max_workers,
+                            initializer=_init_worker,
+                            initargs=(valid_traces,)) as executor:
+        futures = {
+            executor.submit(analyze_single_bootstrap, bootstrap_idx, ground_truth, bootstrap_size): bootstrap_idx
+            for bootstrap_idx in range(num_bootstraps)
+        }
 
-        if not sampled_traces:
-            continue
-
-        # Analyze this bootstrap sample
-        bootstrap_analysis = analyze_single_experiment({'all_traces': sampled_traces}, ground_truth)
-
-        if bootstrap_analysis:
-            for voting_method, result in bootstrap_analysis.items():
-                result['bootstrap_idx'] = bootstrap_idx
-                result['bootstrap_size'] = len(sampled_traces)
-            bootstrap_results.append(bootstrap_analysis)
+        for future in as_completed(futures):
+            result = future.result()
+            if result:
+                bootstrap_results.append(result)
 
     return bootstrap_results
 
@@ -310,7 +332,7 @@ def process_file(filename, outputs_dir):
         ground_truth = data.get('ground_truth')
 
         # Analyze with bootstrap sampling
-        bootstrap_analyses = analyze_bootstrap_experiment(data, ground_truth, num_bootstraps=16, bootstrap_size=512)
+        bootstrap_analyses = analyze_bootstrap_experiment(data, ground_truth, num_bootstraps=64, bootstrap_size=512)
 
         file_results = []
         if bootstrap_analyses:
@@ -347,29 +369,19 @@ def load_and_analyze_voting(outputs_dir="../outputs-offline"):
         print(f"Directory {outputs_dir} not found!")
         return pd.DataFrame()
 
-    from concurrent.futures import ProcessPoolExecutor, as_completed
-    from functools import partial
-
     all_files = [f for f in os.listdir(outputs_dir) if f.endswith('.pkl')]
     print(f"Found {len(all_files)} pickle files")
 
     all_results = []
     load_errors = []
 
-    # Process files in parallel
-    max_workers = min(32, os.cpu_count())
-    process_func = partial(process_file, outputs_dir=outputs_dir)
-
-    with ProcessPoolExecutor(max_workers=max_workers) as executor:
-        futures = {executor.submit(process_func, filename): filename for filename in all_files}
-
-        for future in tqdm(as_completed(futures), total=len(futures), desc="Processing files"):
-            file_results, error = future.result()
-
-            if file_results:
-                all_results.extend(file_results)
-            elif error:
-                load_errors.append(error)
+    # Process files sequentially
+    for filename in tqdm(all_files, desc="Processing files"):
+        file_results, error = process_file(filename, outputs_dir)
+        if file_results:
+            all_results.extend(file_results)
+        elif error:
+            load_errors.append(error)
 
     if load_errors:
         print(f"Load errors: {len(load_errors)}")

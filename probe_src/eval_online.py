@@ -12,7 +12,7 @@ from collections import defaultdict
 import re
 from tqdm import tqdm
 
-TOKEN_LIMIT = 900000
+TOKEN_LIMIT = 64000
 
 def parse_filename(filename):
     """Parse filename to extract method, qid, rid, timestamp"""

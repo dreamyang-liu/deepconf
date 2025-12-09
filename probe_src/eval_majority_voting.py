@@ -362,7 +362,7 @@ def process_file(filename, outputs_dir):
     except Exception as e:
         return None, (filename, str(e))
 
-def load_and_analyze_voting(outputs_dir="../outputs-offline"):
+def load_and_analyze_voting(outputs_dir="../outputs"):
     """Load results and analyze different voting mechanisms with bootstrap sampling"""
 
     if not os.path.exists(outputs_dir):

@@ -256,60 +256,79 @@ def check_answer_correctness(answer, ground_truth):
     except:
         return False
 
-def load_and_analyze_voting(outputs_dir="outputs"):
+def process_single_file(filename, outputs_dir):
+    """Process a single file and return results or error"""
+    parsed = parse_filename(filename)
+    if not parsed:
+        return None, None
+    method_type, qid, rid, timestamp = parsed
+    filepath = os.path.join(outputs_dir, filename)
+    
+    try:
+        # Load file
+        with open(filepath, 'rb') as f:
+            data = pickle.load(f)
+        
+        # Get ground truth
+        ground_truth = data.get('ground_truth')
+        
+        # Analyze voting mechanisms
+        voting_analysis = analyze_single_experiment(data, ground_truth)
+        
+        results = []
+        if voting_analysis:
+            # Create result record for each voting method
+            for voting_method, result in voting_analysis.items():
+                record = {
+                    'method': method_type,
+                    'question_id': qid,
+                    'run_id': rid,
+                    'filename': filename,
+                    'voting_method': voting_method,
+                    'predicted_answer': result['answer'],
+                    'ground_truth': ground_truth,
+                    'is_correct': result['is_correct'],
+                    'num_votes': result['num_votes'],
+                    'avg_confidence': result.get('avg_confidence', 0.0)
+                }
+                results.append(record)
+        
+        return results, None
+    except Exception as e:
+        return None, (filename, str(e))
+
+def load_and_analyze_voting(outputs_dir="outputs-offline"):
     """Load results and analyze different voting mechanisms"""
     
     if not os.path.exists(outputs_dir):
         print(f"Directory {outputs_dir} not found!")
         return pd.DataFrame()
     
+    import multiprocessing as mp
+    from functools import partial
+
     all_files = [f for f in os.listdir(outputs_dir) if f.endswith('.pkl')]
     print(f"Found {len(all_files)} pickle files")
-    
+
     all_results = []
     load_errors = []
-    
-    for filename in tqdm(all_files, desc="Processing files"):
-        parsed = parse_filename(filename)
-        if not parsed:
-            continue
-            
-        method_type, qid, rid, timestamp = parsed
-        filepath = os.path.join(outputs_dir, filename)
-        
-        try:
-            # Load file
-            with open(filepath, 'rb') as f:
-                data = pickle.load(f)
-            
-            # Get ground truth
-            ground_truth = data.get('ground_truth')
-            
-            # Analyze voting mechanisms
-            voting_analysis = analyze_single_experiment(data, ground_truth)
-            
-            if voting_analysis:
-                # Create result record for each voting method
-                for voting_method, result in voting_analysis.items():
-                    record = {
-                        'method': method_type,
-                        'question_id': qid,
-                        'run_id': rid,
-                        'filename': filename,
-                        'voting_method': voting_method,
-                        'predicted_answer': result['answer'],
-                        'ground_truth': ground_truth,
-                        'is_correct': result['is_correct'],
-                        'num_votes': result['num_votes'],
-                        'avg_confidence': result.get('avg_confidence', 0.0)
-                    }
-                    all_results.append(record)
-            
-            # Clean up memory
-            del data
-                
-        except Exception as e:
-            load_errors.append((filename, str(e)))
+
+    # Use multiprocessing to process files in parallel
+    process_func = partial(process_single_file, outputs_dir=outputs_dir)
+
+    with mp.Pool(processes=mp.cpu_count()) as pool:
+        results = list(tqdm(
+            pool.imap(process_func, all_files),
+            total=len(all_files),
+            desc="Processing files"
+        ))
+
+    # Collect results and errors
+    for file_results, error in results:
+        if error:
+            load_errors.append(error)
+        elif file_results:
+            all_results.extend(file_results)
     
     if load_errors:
         print(f"Load errors: {len(load_errors)}")

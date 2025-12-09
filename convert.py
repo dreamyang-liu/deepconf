@@ -68,7 +68,7 @@ def main():
     parser = argparse.ArgumentParser(description='Parallel conversion of offline DeepConf data to online format')
     parser.add_argument('--input_dir', type=str, default='outputs-offline', 
                         help='Input directory containing offline pickle files (default: outputs-offline)')
-    parser.add_argument('--output_dir', type=str, default='outputs-online',
+    parser.add_argument('--output_dir', type=str, default='outputs-online-real',
                         help='Output directory for online pickle files (default: outputs-online)')
     parser.add_argument('--warmup_traces', type=int, default=16,
                         help='Number of warmup traces (default: 16)')
@@ -108,29 +108,32 @@ def main():
     # Prepare conversion arguments
     conversion_args = []
     for input_path in input_files:
-        for i in range(12):
-            # Create output path by replacing input_dir with output_dir and 'simple_' with ''
-            input_filename = os.path.basename(input_path)
-            output_filename = input_filename.replace('deepconf_simple_', 'deepconf_')
-            # Create output path with more descriptive filename including parameters
-            input_filename = os.path.basename(input_path)
-            # Extract question ID and run ID from filename
-            import re
-            qid_match = re.search(r'qid(\d+)', input_filename)
-            rid_match = re.search(r'rid(\d+)', input_filename)
-            date_match = re.search(r'(\d{8}_\d{6})', input_filename)
-            qid = qid_match.group(1) if qid_match else "unknown"
-            rid = rid_match.group(1) if rid_match else "unknown"
-            old_date = date_match.group(1) if date_match else ""
-            # Create new filename with parameters
-            from datetime import datetime
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        # Create output path by replacing input_dir with output_dir and 'simple_' with ''
+        input_filename = os.path.basename(input_path)
+        output_filename = input_filename.replace('deepconf_simple_', 'deepconf_')
+        # Create output path with more descriptive filename including parameters
+        input_filename = os.path.basename(input_path)
+        # Extract question ID and run ID from filename
+        import re
+        qid_match = re.search(r'qid(\d+)', input_filename)
+        rid_match = re.search(r'rid(\d+)', input_filename)
+        date_match = re.search(r'(\d{8}_\d{6})', input_filename)
+        qid = qid_match.group(1) if qid_match else "unknown"
+        rid = rid_match.group(1) if rid_match else "unknown"
+        old_date = date_match.group(1) if date_match else ""
+        output_dir = os.path.join(args.output_dir, f"qid{qid}")
+        os.makedirs(output_dir, exist_ok=True)
+        # Create new filename with parameters
+        # Check existing files in output directory
+        existing_files = glob.glob(os.path.join(output_dir, "*.pkl"))
+        existing_count = len(existing_files)
+        files_to_create = 16 - existing_count if existing_count < 16 else 0
+        for i in range(files_to_create):
+            from datetime import datetime, timedelta
+            timestamp = (datetime.now() + timedelta(seconds=i * 10)).strftime("%Y%m%d_%H%M%S")
             output_filename = f"deepconf_simple_qid{qid}_rid{rid}_{old_date}_online_w{args.warmup_traces}_p{args.confidence_percentile}_{timestamp}.pkl"
             # Create directory structure
-            output_dir = os.path.join(args.output_dir, f"qid{qid}")
-            os.makedirs(output_dir, exist_ok=True)
             output_path = os.path.join(output_dir, output_filename)
-            
             conversion_args.append((
                 input_path,
                 output_path,
@@ -138,8 +141,8 @@ def main():
                 args.confidence_percentile,
                 args.window_size
             ))
-            import time
-            time.sleep(1)
+            # import time
+            # time.sleep(1)
     
     # Run conversions in parallel
     if args.workers == 1:

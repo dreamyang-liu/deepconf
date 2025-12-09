@@ -342,6 +342,8 @@ def process_data(data, prob_token=None, output_path=None):
         "prob_token": prob_token,
         "aggregation": aggregation,
         "raw_answers": answers,
+        "token_usages": token_usages,
+        "token_usage": sum(token_usages)
     }
     
     # Save if output path provided
@@ -362,6 +364,7 @@ def process_data(data, prob_token=None, output_path=None):
     print(f"Unique answers: {aggregation['unique_answers']}")
     print(f"Is correct: {aggregation['is_correct']}")
     print(f"Accuracy: {aggregation['accuracy']:.2%}")
+    print(f"Token usage: {results['token_usage']}")
     print("=" * 70)
     
     return results
@@ -413,7 +416,7 @@ def main():
         except Exception as e:
             print(f"Error processing {pkl_file}: {e}")
             continue
-
+    print(f"Token usage: {sum(r['token_usage'] for r in all_results)}")
     # Save summary results
     summary_file = os.path.join(output_dir, "summary_results.json")
     with open(summary_file, 'w') as f:

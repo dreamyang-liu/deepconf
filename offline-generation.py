@@ -117,7 +117,7 @@ async def generate_all_questions(
 
     Args:
         questions_spec: list of dicts, each with keys:
-            prompt, total_budget, ground_truth, window_size, trace_dir, id_offset, qid
+            prompt, missing_indices, ground_truth, window_size, trace_dir, qid
     Returns:
         dict mapping qid -> (successful_results, counters)
     """
@@ -128,12 +128,12 @@ async def generate_all_questions(
     # Set up per-question bookkeeping
     per_q = {}
     all_tasks = []
-    total_requests = sum(q['total_budget'] for q in questions_spec)
+    total_requests = sum(len(q['missing_indices']) for q in questions_spec)
     global_counters = {'completed': 0, 'total': total_requests, 'start_time': time.time()}
 
     for q in questions_spec:
         qid = q['qid']
-        budget = q['total_budget']
+        budget = len(q['missing_indices'])
         results_list = [None] * budget
         counters = {'completed': 0, 'errors': 0, 'total': budget, 'start_time': time.time()}
         per_q[qid] = {'results_list': results_list, 'counters': counters, 'spec': q}
@@ -142,11 +142,11 @@ async def generate_all_questions(
         for q in questions_spec:
             qid = q['qid']
             pq = per_q[qid]
-            for i in range(q['total_budget']):
+            for i, trace_id in enumerate(q['missing_indices']):
                 all_tasks.append(
                     generate_one(
                         session, url, q['prompt'],
-                        q['id_offset'] + i, i, semaphore,
+                        trace_id, i, semaphore,
                         q['ground_truth'], q['window_size'], q['trace_dir'],
                         pq['results_list'], pq['counters'], progress_interval,
                         global_counters=global_counters,
@@ -294,24 +294,29 @@ def main(qids, rid, server_url, max_concurrent, timeout, progress_interval, outp
         os.makedirs(trace_dir, exist_ok=True)
 
         existing_files = sorted(glob.glob(os.path.join(trace_dir, "trace_*.pkl")))
-        existing_count = len(existing_files)
-        remaining = TOTAL_BUDGET - existing_count
+        existing_indices = set()
+        for f in existing_files:
+            basename = os.path.basename(f)
+            idx = int(basename.replace('trace_', '').replace('.pkl', ''))
+            existing_indices.add(idx)
+        missing_indices = sorted(set(range(TOTAL_BUDGET)) - existing_indices)
 
-        if remaining <= 0:
-            print(f"  qid={qid}: Already have {existing_count}/{TOTAL_BUDGET} traces, skipping.")
+        if len(missing_indices) == 0:
+            print(f"  qid={qid}: Already have all {TOTAL_BUDGET} traces, skipping.")
             all_traces = []
-            for f in existing_files[:TOTAL_BUDGET]:
-                with open(f, 'rb') as fh:
+            for idx in range(TOTAL_BUDGET):
+                fpath = os.path.join(trace_dir, f"trace_{idx:04d}.pkl")
+                with open(fpath, 'rb') as fh:
                     all_traces.append(pickle.load(fh))
-            counters = {'completed': existing_count, 'errors': 0, 'total': TOTAL_BUDGET, 'start_time': time.time()}
+            counters = {'completed': TOTAL_BUDGET, 'errors': 0, 'total': TOTAL_BUDGET, 'start_time': time.time()}
             skipped_questions[qid] = (all_traces, ground_truth, counters)
         else:
             existing_traces = []
             for f in existing_files:
                 with open(f, 'rb') as fh:
                     existing_traces.append(pickle.load(fh))
-            if existing_count > 0:
-                print(f"  qid={qid}: Found {existing_count} existing traces, will generate {remaining} more.")
+            if len(existing_indices) > 0:
+                print(f"  qid={qid}: Found {len(existing_indices)} existing traces, {len(missing_indices)} missing indices to generate.")
             else:
                 print(f"  qid={qid}: Will generate {TOTAL_BUDGET} traces.")
 
@@ -319,10 +324,9 @@ def main(qids, rid, server_url, max_concurrent, timeout, progress_interval, outp
                 'qid': qid,
                 'prompt': prompt,
                 'ground_truth': ground_truth,
-                'total_budget': remaining,
+                'missing_indices': missing_indices,
                 'window_size': WINDOW_SIZE,
                 'trace_dir': trace_dir,
-                'id_offset': existing_count,
                 'existing_traces': existing_traces,
             })
 
@@ -330,7 +334,7 @@ def main(qids, rid, server_url, max_concurrent, timeout, progress_interval, outp
     generation_results = {}  # qid -> (all_traces, counters)
 
     if questions_spec:
-        total_requests = sum(q['total_budget'] for q in questions_spec)
+        total_requests = sum(len(q['missing_indices']) for q in questions_spec)
         print(f"\nDispatching {total_requests} requests across {len(questions_spec)} questions concurrently...")
         generation_start = time.time()
         gen_results = asyncio.run(

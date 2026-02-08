@@ -55,6 +55,7 @@ async def generate_one(
     session, url, prompt, trace_id, list_index, semaphore,
     ground_truth, window_size, output_dir,
     results_list, counters, progress_interval,
+    global_counters=None,
 ):
     """Send one /generate request, process the response, and save immediately.
 
@@ -100,113 +101,71 @@ async def generate_one(
 
     # Progress reporting
     counters['completed'] += 1
-    completed = counters['completed']
-    if completed % progress_interval == 0 or completed == counters['total']:
-        elapsed = time.time() - counters['start_time']
-        print(f"  Progress: {completed}/{counters['total']} "
-              f"({completed / counters['total']:.1%}) - {elapsed:.1f}s elapsed")
+    if global_counters is not None:
+        global_counters['completed'] += 1
+        gc = global_counters['completed']
+        if gc % progress_interval == 0 or gc == global_counters['total']:
+            elapsed = time.time() - global_counters['start_time']
+            print(f"  [global] {gc}/{global_counters['total']} "
+                  f"({gc / global_counters['total']:.1%}) - {elapsed:.1f}s elapsed")
 
 
-async def generate_all(
-    url, prompt, total_budget, ground_truth, window_size,
-    output_dir, max_concurrent, timeout, progress_interval,
-    id_offset=0,
+async def generate_all_questions(
+    url, questions_spec, max_concurrent, timeout, progress_interval,
 ):
-    """Fire off total_budget async requests and collect results."""
-    semaphore = asyncio.Semaphore(max_concurrent)
-    results_list = [None] * total_budget
-    counters = {
-        'completed': 0,
-        'errors': 0,
-        'total': total_budget,
-        'start_time': time.time(),
-    }
+    """Fire off requests for all questions concurrently in a single event loop.
 
+    Args:
+        questions_spec: list of dicts, each with keys:
+            prompt, total_budget, ground_truth, window_size, trace_dir, id_offset, qid
+    Returns:
+        dict mapping qid -> (successful_results, counters)
+    """
+    semaphore = asyncio.Semaphore(max_concurrent)
     connector = aiohttp.TCPConnector(limit=max_concurrent, limit_per_host=max_concurrent)
     client_timeout = aiohttp.ClientTimeout(total=timeout)
 
+    # Set up per-question bookkeeping
+    per_q = {}
+    all_tasks = []
+    total_requests = sum(q['total_budget'] for q in questions_spec)
+    global_counters = {'completed': 0, 'total': total_requests, 'start_time': time.time()}
+
+    for q in questions_spec:
+        qid = q['qid']
+        budget = q['total_budget']
+        results_list = [None] * budget
+        counters = {'completed': 0, 'errors': 0, 'total': budget, 'start_time': time.time()}
+        per_q[qid] = {'results_list': results_list, 'counters': counters, 'spec': q}
+
     async with aiohttp.ClientSession(connector=connector, timeout=client_timeout) as session:
-        tasks = [
-            generate_one(
-                session, url, prompt, id_offset + i, i, semaphore,
-                ground_truth, window_size, output_dir,
-                results_list, counters, progress_interval,
-            )
-            for i in range(total_budget)
-        ]
-        await asyncio.gather(*tasks, return_exceptions=True)
+        for q in questions_spec:
+            qid = q['qid']
+            pq = per_q[qid]
+            for i in range(q['total_budget']):
+                all_tasks.append(
+                    generate_one(
+                        session, url, q['prompt'],
+                        q['id_offset'] + i, i, semaphore,
+                        q['ground_truth'], q['window_size'], q['trace_dir'],
+                        pq['results_list'], pq['counters'], progress_interval,
+                        global_counters=global_counters,
+                    )
+                )
+        await asyncio.gather(*all_tasks, return_exceptions=True)
 
-    # Filter out None entries (from failed requests)
-    successful_results = [r for r in results_list if r is not None]
-    return successful_results, counters
+    # Collect results per question
+    results = {}
+    for qid, pq in per_q.items():
+        successful = [r for r in pq['results_list'] if r is not None]
+        results[qid] = (successful, pq['counters'])
+    return results
 
 
-def process_question(qid, rid, question_data, tokenizer, server_url,
-                     max_concurrent, timeout, progress_interval, output_dir="outputs"):
-    """
-    Process a single question: prepare prompt, generate traces, vote, save results.
-
-    Returns:
-        dict: problem_result with all traces, voted answer, and statistics
-    """
+def postprocess_question(qid, rid, question_data, ground_truth, all_traces, counters,
+                         generation_time, prompt_prep_time, server_url, max_concurrent, output_dir="outputs"):
+    """Post-process a single question after generation: vote, save, print summary."""
     question_start = time.time()
-
-    print(f"\n{'='*60}")
-    print(f"Processing question {qid}: {question_data['question'][:100]}...")
-    print(f"{'='*60}")
-
-    # Prepare prompt
-    prompt_prep_start = time.time()
-    prompt, ground_truth = prepare_prompt(question_data, tokenizer)
-    prompt_prep_time = time.time() - prompt_prep_start
-
-    # Stable trace output directory (no timestamp, so we can resume)
-    model_name = MODEL_PATH.split('/')[-1]
-    dataset_name = DATASET_FILE.split('.')[0]
-    trace_dir = f"{output_dir}/{model_name}/{dataset_name}/traces/qid{qid}_rid{rid}"
-    os.makedirs(trace_dir, exist_ok=True)
-
-    # Scan for existing traces to support resumption
-    existing_files = sorted(glob.glob(os.path.join(trace_dir, "trace_*.pkl")))
-    existing_count = len(existing_files)
-    remaining = TOTAL_BUDGET - existing_count
-
-    if remaining <= 0:
-        print(f"  Already have {existing_count}/{TOTAL_BUDGET} traces, skipping generation.")
-        # Load all existing traces
-        all_traces = []
-        for f in existing_files[:TOTAL_BUDGET]:
-            with open(f, 'rb') as fh:
-                all_traces.append(pickle.load(fh))
-        generation_time = 0.0
-        counters = {'completed': existing_count, 'errors': 0, 'total': TOTAL_BUDGET, 'start_time': time.time()}
-    else:
-        # Load existing traces
-        existing_traces = []
-        for f in existing_files:
-            with open(f, 'rb') as fh:
-                existing_traces.append(pickle.load(fh))
-        print(f"  Found {existing_count} existing traces, generating {remaining} more...")
-
-        generation_start = time.time()
-        new_traces, counters = asyncio.run(
-            generate_all(
-                url=server_url,
-                prompt=prompt,
-                total_budget=remaining,
-                ground_truth=ground_truth,
-                window_size=WINDOW_SIZE,
-                output_dir=trace_dir,
-                max_concurrent=max_concurrent,
-                timeout=timeout,
-                progress_interval=progress_interval,
-                id_offset=existing_count,
-            )
-        )
-        generation_time = time.time() - generation_start
-        all_traces = existing_traces + new_traces
-        print(f"  Generation completed: {generation_time:.2f}s "
-              f"({len(new_traces)} new, {existing_count} existing, {counters['errors']} errors)")
 
     total_tokens = sum(t['num_tokens'] for t in all_traces)
 
@@ -219,7 +178,7 @@ def process_question(qid, rid, question_data, tokenizer, server_url,
             voting_answers.append(trace['extracted_answer'])
             voting_weights.append(1.0)
 
-    print(f'  Voting candidates: {len(voting_answers)}')
+    print(f'  [qid={qid}] Voting candidates: {len(voting_answers)}')
 
     voted_answer = weighted_majority_vote(voting_answers, voting_weights)
     is_voted_correct = False
@@ -229,11 +188,12 @@ def process_question(qid, rid, question_data, tokenizer, server_url,
         except:
             is_voted_correct = str(voted_answer) == str(ground_truth)
 
-    question_time = time.time() - question_start
-
     # Calculate statistics
     correct_traces = sum(1 for trace in all_traces if trace['is_correct'])
     accuracy = correct_traces / len(all_traces) if all_traces else 0
+
+    model_name = MODEL_PATH.split('/')[-1]
+    dataset_name = DATASET_FILE.split('.')[0]
 
     problem_result = {
         "question_id": qid,
@@ -254,7 +214,6 @@ def process_question(qid, rid, question_data, tokenizer, server_url,
         "timing_stats": {
             "prompt_prep_time": prompt_prep_time,
             "generation_time": generation_time,
-            "question_time": question_time,
         },
         "config": {
             "model_path": MODEL_PATH,
@@ -277,7 +236,7 @@ def process_question(qid, rid, question_data, tokenizer, server_url,
     status = "CORRECT" if is_voted_correct else "WRONG"
     print(f"  Result: [{status}] voted={voted_answer}, gt={ground_truth}, "
           f"trace_acc={correct_traces}/{len(all_traces)} ({accuracy:.1%}), "
-          f"tokens={total_tokens}, time={question_time:.1f}s")
+          f"tokens={total_tokens}")
     print(f"  Saved to {result_filename}")
 
     return problem_result
@@ -286,14 +245,8 @@ def process_question(qid, rid, question_data, tokenizer, server_url,
 def main(qids, rid, server_url, max_concurrent, timeout, progress_interval, output_dir="outputs"):
     """
     Main function to process questions.
-
-    Args:
-        qids (list[int]): List of question IDs to process
-        rid (str): Run ID for file naming
-        server_url (str): SGLang server base URL
-        max_concurrent (int): Maximum concurrent HTTP requests
-        timeout (int): HTTP request timeout in seconds
-        progress_interval (int): Print progress every N completions
+    Prepares all prompts upfront, then dispatches all generation requests
+    concurrently in a single event loop to maximize server utilization.
     """
     os.makedirs(output_dir, exist_ok=True)
     total_start_time = time.time()
@@ -323,13 +276,99 @@ def main(qids, rid, server_url, max_concurrent, timeout, progress_interval, outp
 
     print(f"\nWill process {len(qids)} questions: {qids}")
 
-    # Process each question
+    # --- Phase 1: Prepare all prompts and check resumption state upfront ---
+    model_name = MODEL_PATH.split('/')[-1]
+    dataset_name = DATASET_FILE.split('.')[0]
+
+    questions_spec = []       # specs for questions that need generation
+    skipped_questions = {}    # qid -> (all_traces, counters) for already-complete questions
+    prompt_prep_times = {}
+
+    print("\nPreparing prompts and checking resumption state...")
+    for qid in qids:
+        prompt_prep_start = time.time()
+        prompt, ground_truth = prepare_prompt(data[qid], tokenizer)
+        prompt_prep_times[qid] = time.time() - prompt_prep_start
+
+        trace_dir = f"{output_dir}/{model_name}/{dataset_name}/traces/qid{qid}_rid{rid}"
+        os.makedirs(trace_dir, exist_ok=True)
+
+        existing_files = sorted(glob.glob(os.path.join(trace_dir, "trace_*.pkl")))
+        existing_count = len(existing_files)
+        remaining = TOTAL_BUDGET - existing_count
+
+        if remaining <= 0:
+            print(f"  qid={qid}: Already have {existing_count}/{TOTAL_BUDGET} traces, skipping.")
+            all_traces = []
+            for f in existing_files[:TOTAL_BUDGET]:
+                with open(f, 'rb') as fh:
+                    all_traces.append(pickle.load(fh))
+            counters = {'completed': existing_count, 'errors': 0, 'total': TOTAL_BUDGET, 'start_time': time.time()}
+            skipped_questions[qid] = (all_traces, ground_truth, counters)
+        else:
+            existing_traces = []
+            for f in existing_files:
+                with open(f, 'rb') as fh:
+                    existing_traces.append(pickle.load(fh))
+            if existing_count > 0:
+                print(f"  qid={qid}: Found {existing_count} existing traces, will generate {remaining} more.")
+            else:
+                print(f"  qid={qid}: Will generate {TOTAL_BUDGET} traces.")
+
+            questions_spec.append({
+                'qid': qid,
+                'prompt': prompt,
+                'ground_truth': ground_truth,
+                'total_budget': remaining,
+                'window_size': WINDOW_SIZE,
+                'trace_dir': trace_dir,
+                'id_offset': existing_count,
+                'existing_traces': existing_traces,
+            })
+
+    # --- Phase 2: Generate all questions concurrently ---
+    generation_results = {}  # qid -> (all_traces, counters)
+
+    if questions_spec:
+        total_requests = sum(q['total_budget'] for q in questions_spec)
+        print(f"\nDispatching {total_requests} requests across {len(questions_spec)} questions concurrently...")
+        generation_start = time.time()
+        gen_results = asyncio.run(
+            generate_all_questions(
+                url=server_url,
+                questions_spec=questions_spec,
+                max_concurrent=max_concurrent,
+                timeout=timeout,
+                progress_interval=progress_interval,
+            )
+        )
+        generation_time = time.time() - generation_start
+        print(f"All generation completed in {generation_time:.1f}s")
+
+        for q in questions_spec:
+            qid = q['qid']
+            new_traces, counters = gen_results[qid]
+            all_traces = q['existing_traces'] + new_traces
+            generation_results[qid] = (all_traces, q['ground_truth'], counters)
+    else:
+        generation_time = 0.0
+
+    # --- Phase 3: Post-process all questions ---
     all_results = []
-    for i, qid in enumerate(qids):
-        print(f"\n[{i+1}/{len(qids)}] Question {qid}")
-        result = process_question(
-            qid, rid, data[qid], tokenizer,
-            server_url, max_concurrent, timeout, progress_interval,
+    for qid in qids:
+        if qid in skipped_questions:
+            all_traces, ground_truth, counters = skipped_questions[qid]
+            gen_time = 0.0
+        else:
+            all_traces, ground_truth, counters = generation_results[qid]
+            gen_time = generation_time  # shared wall-clock time
+
+        result = postprocess_question(
+            qid, rid, data[qid], ground_truth, all_traces, counters,
+            generation_time=gen_time,
+            prompt_prep_time=prompt_prep_times[qid],
+            server_url=server_url,
+            max_concurrent=max_concurrent,
             output_dir=output_dir,
         )
         all_results.append(result)

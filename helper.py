@@ -231,3 +231,82 @@ def process_batch_results_offline(batch_outputs, ground_truth, window_size):
         'total_tokens': total_tokens,
         'num_traces': len(traces)
     }
+
+
+
+
+def compute_confidence_sglang(top_logprobs):
+    """Compute confidence score from SGLang top logprobs.
+
+    SGLang returns top logprobs as a list of lists of (logprob, token_id, decoded_text) tuples.
+    """
+    confs = []
+    for token_top_logprobs in top_logprobs:
+        if token_top_logprobs:
+            mean_logprob = np.mean([lp[0] for lp in token_top_logprobs])
+            confs.append(round(-mean_logprob, 3))
+    return confs
+
+
+def process_output_offline_sglang(output, ground_truth, window_size):
+    """Process a single SGLang output"""
+    text = output["text"]
+    meta_info = output["meta_info"]
+    # SGLang server puts token ids at top-level "output_ids", not in meta_info
+    token_ids = output.get("output_ids", meta_info.get("output_token_ids", []))
+    top_logprobs = meta_info.get("output_top_logprobs", [])
+    token_logprobs = meta_info.get("output_token_logprobs", [])
+
+    # Fallback: extract token_ids from output_token_logprobs
+    # Each entry is [logprob, token_id, decoded_text]
+    if not token_ids and token_logprobs:
+        token_ids = [t[1] for t in token_logprobs]
+
+    confs = compute_confidence_sglang(top_logprobs) if top_logprobs else []
+
+    # Use len(confs) as fallback for num_tokens when token_ids is still empty
+    num_tokens = len(token_ids) if token_ids else len(confs)
+
+    extracted_answer = extract_answer(text)
+
+    is_correct = False
+    if extracted_answer and ground_truth:
+        try:
+            is_correct = equal_func(extracted_answer, ground_truth)
+        except:
+            is_correct = str(extracted_answer) == str(ground_truth)
+
+    finish_reason = meta_info.get("finish_reason", {})
+    if isinstance(finish_reason, dict):
+        finish_reason = finish_reason.get("type", "unknown")
+
+    return {
+        "stop_reason": finish_reason,
+        "text": text,
+        "token_ids": token_ids,
+        "num_tokens": num_tokens,
+        "confs": confs,
+        "extracted_answer": extracted_answer,
+        "is_correct": is_correct,
+    }
+
+
+def process_batch_results_offline_sglang(outputs, ground_truth, window_size):
+    """Process batch results from SGLang.
+
+    SGLang returns a flat list of output dicts (one per completion).
+    """
+    traces = []
+    total_tokens = 0
+
+    for output in outputs:
+        trace_data = process_output_offline_sglang(output, ground_truth, window_size)
+        traces.append(trace_data)
+        total_tokens += trace_data["num_tokens"]
+
+    return {
+        'traces': traces,
+        'ground_truth': ground_truth,
+        'total_tokens': total_tokens,
+        'num_traces': len(traces)
+    }

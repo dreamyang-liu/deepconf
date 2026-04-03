@@ -1,3 +1,7 @@
 outputs/*
+outputs-bedrock/*
+outputs-bedrock-confs/*
 *.pkl
+*.log
 prob_analysis/*
+__pycache__/

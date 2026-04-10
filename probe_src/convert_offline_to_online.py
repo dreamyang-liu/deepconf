@@ -30,7 +30,7 @@ import random
 from functools import cache
 from transformers import AutoTokenizer
 
-MODEL_PATH = "deepseek-ai/DeepSeek-R1-0528-Qwen3-8B"
+MODEL_PATH = "Qwen/Qwen3-32B"
 
 @cache
 def get_tokenizer():
@@ -161,7 +161,7 @@ def convert_offline_to_online(offline_data, warmup_traces=16, total_traces=512, 
                 trace['group_confs'] = trace['group_confs'][:early_stop_idx+1]
 
                 # Set stop reason
-            trace['stop_reason'] = 'gconf_threshold'
+                trace['stop_reason'] = 'gconf_threshold'
     
     # Calculate token statistics
     warmup_tokens = sum(trace['num_tokens'] for trace in warmup_traces_data)
@@ -202,71 +202,58 @@ def convert_offline_to_online(offline_data, warmup_traces=16, total_traces=512, 
     return online_data
 
 
-def main():
-    parser = argparse.ArgumentParser(description='Convert offline DeepConf data to online format')
-    parser.add_argument('--input', type=str, required=True, help='Input offline pickle file path')
-    parser.add_argument('--output', type=str, help='Output online pickle file path (optional, defaults to same name with _online suffix)')
-    parser.add_argument('--warmup_traces', type=int, default=16, help='Number of warmup traces (default: 16)')
-    parser.add_argument('--confidence_percentile', type=int, default=90, help='Confidence percentile for threshold (default: 90)')
-    parser.add_argument('--window_size', type=int, default=2048, help='Window size for confidence calculation (default: 2048)')
-    
-    args = parser.parse_args()
-    
+def process_single_file(input_path, output_path, warmup_traces, confidence_percentile, window_size):
+    """Process a single offline pkl file and save as online format."""
+    import re
+
     # Load offline data
-    print(f"Loading offline data from {args.input}...")
-    with open(args.input, 'rb') as f:
+    print(f"Loading offline data from {input_path}...")
+    with open(input_path, 'rb') as f:
         offline_data = pickle.load(f)
-    
+
     # Print offline data info
     print(f"Offline data loaded:")
     print(f"  Question ID: {offline_data.get('question_id')}")
     print(f"  Run ID: {offline_data.get('run_id')}")
     print(f"  Total traces: {len(offline_data.get('all_traces', []))}")
     print(f"  Total tokens: {offline_data.get('token_stats', {}).get('total_tokens', 0)}")
-    
+
     # Convert to online format
     print(f"\nConverting to online format...")
-    print(f"  Warmup traces: {args.warmup_traces}")
-    print(f"  Confidence percentile: {args.confidence_percentile}")
-    print(f"  Window size: {args.window_size}")
-    
+    print(f"  Warmup traces: {warmup_traces}")
+    print(f"  Confidence percentile: {confidence_percentile}")
+    print(f"  Window size: {window_size}")
+
     online_data = convert_offline_to_online(
         offline_data,
-        warmup_traces=args.warmup_traces,
-        confidence_percentile=args.confidence_percentile,
-        window_size=args.window_size
+        warmup_traces=warmup_traces,
+        confidence_percentile=confidence_percentile,
+        window_size=window_size
     )
-    
+
     # Determine output path
-    if args.output:
-        output_path = args.output
-    else:
-        # Create output path with more descriptive filename including parameters
-        input_filename = os.path.basename(args.input)
-        # Extract question ID and run ID from filename
-        import re
+    if output_path is None:
+        input_filename = os.path.basename(input_path)
         qid_match = re.search(r'qid(\d+)', input_filename)
-        rid_match = re.search(r'rid(\d+)', input_filename)
+        rid_match = re.search(r'rid(\w+)', input_filename)
         date_match = re.search(r'(\d{8}_\d{6})', input_filename)
 
         qid = qid_match.group(1) if qid_match else "unknown"
         rid = rid_match.group(1) if rid_match else "unknown"
         old_date = date_match.group(1) if date_match else ""
 
-        # Create new filename with parameters
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        output_filename = f"deepconf_simple_qid{qid}_rid{rid}_{old_date}_online_w{args.warmup_traces}_p{args.confidence_percentile}_{timestamp}.pkl"
+        output_filename = f"deepconf_simple_qid{qid}_rid{rid}_{old_date}_online_w{warmup_traces}_p{confidence_percentile}_{timestamp}.pkl"
 
-        # Create directory structure
         output_dir = os.path.join('outputs-online', f"qid{qid}")
         os.makedirs(output_dir, exist_ok=True)
         output_path = os.path.join(output_dir, output_filename)
-    
+
     # Save online data
     print(f"\nSaving online data to {output_path}...")
     with open(output_path, 'wb') as f:
         pickle.dump(online_data, f)
-    
+
     # Print online data info
     print(f"\nOnline data saved:")
     print(f"  Confidence bar: {online_data['conf_bar']:.3f}")
@@ -275,12 +262,66 @@ def main():
     print(f"  Warmup tokens: {online_data['token_stats']['warmup_tokens']}")
     print(f"  Final tokens: {online_data['token_stats']['final_tokens']}")
     print(f"  Total tokens: {online_data['token_stats']['total_tokens']}")
-    
+
     # Count early stopped traces
     early_stopped = sum(1 for trace in online_data['final_traces'] if trace.get('stop_reason') == 'gconf_threshold')
     print(f"  Early stopped traces: {early_stopped}/{len(online_data['final_traces'])}")
-    
-    print(f"\nConversion completed successfully!")
+
+    return output_path
+
+
+def main():
+    parser = argparse.ArgumentParser(description='Convert offline DeepConf data to online format')
+    parser.add_argument('--input', type=str, help='Input offline pickle file path (single file mode)')
+    parser.add_argument('--output', type=str, help='Output online pickle file path (single file mode, optional)')
+    parser.add_argument('--input-dir', type=str, help='Input directory containing offline pkl files (batch mode)')
+    parser.add_argument('--output-dir', type=str, help='Output directory for online pkl files (batch mode)')
+    parser.add_argument('--warmup_traces', type=int, default=16, help='Number of warmup traces (default: 16)')
+    parser.add_argument('--confidence_percentile', type=int, default=90, help='Confidence percentile for threshold (default: 90)')
+    parser.add_argument('--window_size', type=int, default=2048, help='Window size for confidence calculation (default: 2048)')
+
+    args = parser.parse_args()
+
+    if args.input_dir:
+        # Batch mode: process all pkl files in input directory
+        import glob
+        pkl_files = sorted(glob.glob(os.path.join(args.input_dir, '*.pkl')))
+        if not pkl_files:
+            print(f"No pkl files found in {args.input_dir}")
+            return
+
+        output_dir = args.output_dir if args.output_dir else os.path.join('outputs-online', os.path.basename(args.input_dir))
+        os.makedirs(output_dir, exist_ok=True)
+
+        print(f"Batch mode: processing {len(pkl_files)} files from {args.input_dir}")
+        print(f"Output directory: {output_dir}")
+
+        for i, input_path in enumerate(pkl_files):
+            input_filename = os.path.basename(input_path)
+            output_filename = input_filename.replace('.pkl', '_online.pkl')
+            output_path = os.path.join(output_dir, output_filename)
+
+            # Skip if already done
+            if os.path.exists(output_path):
+                print(f"\n[{i+1}/{len(pkl_files)}] Skipping {input_filename} (already converted)")
+                continue
+
+            print(f"\n[{i+1}/{len(pkl_files)}] Processing {input_filename}...")
+            try:
+                process_single_file(input_path, output_path, args.warmup_traces, args.confidence_percentile, args.window_size)
+            except Exception as e:
+                print(f"  ERROR processing {input_filename}: {e}")
+                continue
+
+        print(f"\nBatch conversion completed! Processed {len(pkl_files)} files.")
+
+    elif args.input:
+        # Single file mode
+        process_single_file(args.input, args.output, args.warmup_traces, args.confidence_percentile, args.window_size)
+        print(f"\nConversion completed successfully!")
+
+    else:
+        parser.error("Must specify either --input (single file) or --input-dir (batch mode)")
 
 
 if __name__ == "__main__":

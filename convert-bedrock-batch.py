@@ -25,12 +25,16 @@ from difflib import SequenceMatcher
 
 from helper import extract_answer, equal_func, weighted_majority_vote
 
-PROJECTS_DIR = os.path.expanduser("~/projects")
+PROJECTS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "bedrock-data")
 
 DATASET_CONFIG = {
     "aime24": {
         "dataset_file": "aime_2024.jsonl",
         "batch_dir": os.path.join(PROJECTS_DIR, "aime24"),
+    },
+    "aime25": {
+        "dataset_file": "aime_2025.jsonl",
+        "batch_dir": os.path.join(PROJECTS_DIR, "aime25"),
     },
     "brumo25": {
         "dataset_file": "brumo_2025.jsonl",
@@ -161,6 +165,9 @@ def convert_dataset(dataset_name, output_dir, rid="bedrock"):
     if dataset_name == "aime24":
         qid_to_ds = build_aime24_qid_mapping(batch_dir, dataset)
         print(f"[{dataset_name}] Built fuzzy qid mapping: {len(qid_to_ds)} questions")
+    elif dataset_name == "aime25":
+        # numeric qid -> dataset index directly
+        qid_to_ds = {str(i): i for i in range(len(dataset))}
     else:
         # problem_N -> N
         qid_to_ds = {f"problem_{i}": i for i in range(len(dataset))}
@@ -299,7 +306,7 @@ def main():
         "--dataset",
         type=str,
         required=True,
-        choices=["aime24", "brumo25", "hmmt", "all"],
+        choices=["aime24", "aime25", "brumo25", "hmmt", "all"],
         help="Dataset to convert",
     )
     parser.add_argument(

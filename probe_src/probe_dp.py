@@ -28,7 +28,7 @@ from functools import cache
 import glob
 
 # Model configuration
-MODEL_PATH = "deepseek-ai/DeepSeek-R1-0528-Qwen3-8B"
+MODEL_PATH = "Qwen/Qwen3-32B"
 MAX_TOKENS = 64000
 
 # Global instances
@@ -55,7 +55,7 @@ def get_vllm():
     if ENGINE is None:
         ENGINE = LLM(
             model=MODEL_PATH,
-            tensor_parallel_size=8,
+            tensor_parallel_size=2,
             enable_prefix_caching=True,
             trust_remote_code=True,
         )
@@ -132,16 +132,15 @@ def prepare_prompt_with_candidates(question, thinking_trace, candidates, prob_to
     """
     tokenizer = get_tokenizer()
     
-    # Format base prompt
+    # Format base prompt (no system prompt, matching Bedrock inference)
     messages = [
-        {"role": "system", "content": "该助手为DeepSeek-R1，由深度求索公司创造。\n今天是2025年5月28日，星期一。\n"},
         {"role": "user", "content": question},
     ]
     
     base_prompt = tokenizer.apply_chat_template(
         messages,
         tokenize=False,
-        add_generation_prompt=False
+        add_generation_prompt=True
     )
     
     # Add thinking trace
@@ -381,8 +380,8 @@ def main():
     
     # args = parser.parse_args()
     # Process all data files in the outputs-online folder
-    input_dir = "/home/ec2-user/projects/deepconf/outputs-online"
-    output_dir = "/home/ec2-user/projects/deepconf/dp_probe_results"
+    input_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "outputs-online")
+    output_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "dp_probe_results")
     os.makedirs(output_dir, exist_ok=True)
     prob_token = 64000
 

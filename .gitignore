@@ -5,3 +5,4 @@ outputs-bedrock-confs/*
 *.log
 prob_analysis/*
 __pycache__/
+**/*.out

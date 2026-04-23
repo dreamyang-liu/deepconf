@@ -20,8 +20,9 @@ import os
 import pickle
 import time
 import gc
+import multiprocessing as mp
 import numpy as np
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
 from transformers import AutoTokenizer
 from vllm import LLM, SamplingParams
 
@@ -33,19 +34,81 @@ from helper import (
 )
 
 
+from operator import attrgetter
+
 TOP_LOGPROBS = 20
+_GET_LOGPROB = attrgetter("logprob")
 
 
 def compute_confidence_from_prompt_logprobs(prompt_logprobs, prompt_len):
+    """Per-trace confs = -mean(top-k logprobs) per generated-token position."""
     gen_logprobs = prompt_logprobs[prompt_len:]
-    confs = []
-    for token_lps in gen_logprobs:
-        if token_lps is None:
-            continue
-        if token_lps:
-            mean_lp = np.mean([lp.logprob for lp in token_lps.values()])
-            confs.append(round(-mean_lp, 3))
-    return confs
+    rows = [[_GET_LOGPROB(v) for v in tlp.values()] for tlp in gen_logprobs if tlp]
+    if not rows:
+        return []
+    arr = np.asarray(rows, dtype=np.float32)
+    means = arr.mean(axis=1)
+    return np.round(-means, 3).tolist()
+
+
+def compute_confs_batched(outputs, prompt_len):
+    """Run confidence computation once across every trace's prompt_logprobs.
+
+    Some positions may have fewer than top-k logprobs (edge cases in vLLM),
+    so we compute the mean per row with pure-Python sum()/len() — still fast
+    for 20-element rows and avoids the "inhomogeneous shape" crash from
+    np.asarray on jagged lists.
+
+    Returns a list of length len(outputs): confs list per trace (may be []).
+    """
+    # Flatten each row to just its logprob floats (sum/len doesn't need numpy).
+    means = []
+    boundaries = [0]
+    for output in outputs:
+        plp = output.prompt_logprobs
+        if plp:
+            gen_lps = plp[prompt_len:]
+            for tlp in gen_lps:
+                if tlp:
+                    vals = [_GET_LOGPROB(v) for v in tlp.values()]
+                    if vals:
+                        means.append(-sum(vals) / len(vals))
+        boundaries.append(len(means))
+
+    if not means:
+        return [[] for _ in outputs]
+
+    neg_means = np.round(np.asarray(means, dtype=np.float32), 3)
+    result = []
+    for i in range(len(outputs)):
+        start, end = boundaries[i], boundaries[i + 1]
+        result.append(neg_means[start:end].tolist() if end > start else [])
+    return result
+
+
+# ---------------------------------------------------------------------------
+# Multi-process tokenization (initialized once per child via fork inheritance).
+# ---------------------------------------------------------------------------
+_PRETOK_TOK = None
+
+
+def _pretok_init(tokenizer):
+    global _PRETOK_TOK
+    _PRETOK_TOK = tokenizer
+
+
+def _pretok_subchunk(task):
+    """Tokenize one sub-chunk of traces; returns list of (idx, ids_or_None, length)."""
+    prompt_text, sub, max_model_len, prompt_len = task
+    full_texts = [prompt_text + text for _, text in sub]
+    all_ids = _PRETOK_TOK(full_texts, add_special_tokens=False)["input_ids"]
+    res = []
+    for (idx, _), full_ids in zip(sub, all_ids):
+        if len(full_ids) > max_model_len - 2:
+            res.append((idx, None, len(full_ids) - prompt_len))
+        else:
+            res.append((idx, full_ids, len(full_ids)))
+    return res
 
 
 def pretokenize_question(tokenizer, pickle_path, prompt_text, output_dir, max_model_len):
@@ -83,28 +146,25 @@ def pretokenize_question(tokenizer, pickle_path, prompt_text, output_dir, max_mo
                   for idx, trace in enumerate(all_traces) if idx not in existing_confs]
 
     n_todo = len(to_process)
-    n_workers = 16
-    print(f"    Pre-tokenizing {n_todo} traces with {n_workers} threads...")
+    n_workers = 8
+    print(f"    Pre-tokenizing {n_todo} traces with {n_workers} processes...")
     pretok_start = time.time()
 
-    # Split into chunks and tokenize in parallel using threads
-    # (threads share the tokenizer in memory, no HF downloads, safe before vLLM init)
+    # Split into chunks and tokenize in parallel using true multi-processing
+    # (fork inherits the tokenizer from parent; safe BEFORE vLLM init when
+    # CUDA has not been touched yet).
     chunk_size_tok = max(1, (n_todo + n_workers - 1) // n_workers)
     sub_chunks = [to_process[i:i+chunk_size_tok] for i in range(0, n_todo, chunk_size_tok)]
 
-    def _tok_subchunk(sub):
-        full_texts = [prompt_text + text for _, text in sub]
-        all_ids = tokenizer(full_texts, add_special_tokens=False)["input_ids"]
-        res = []
-        for (idx, _), full_ids in zip(sub, all_ids):
-            if len(full_ids) > max_model_len - 2:
-                res.append((idx, None, len(full_ids) - prompt_len))
-            else:
-                res.append((idx, full_ids, len(full_ids)))
-        return res
+    # Hand off (prefix, sub, max_model_len) so the worker has no closure state.
+    tasks = [(prompt_text, sub, max_model_len, prompt_len) for sub in sub_chunks]
 
-    with ThreadPoolExecutor(max_workers=n_workers) as ex:
-        results = list(ex.map(_tok_subchunk, sub_chunks))
+    ctx = mp.get_context("fork")
+    with ProcessPoolExecutor(
+        max_workers=n_workers, mp_context=ctx,
+        initializer=_pretok_init, initargs=(tokenizer,),
+    ) as ex:
+        results = list(ex.map(_pretok_subchunk, tasks))
 
     candidates = []
     skipped = 0
@@ -165,61 +225,73 @@ def process_question(llm, prepped, output_dir, chunk_size):
         total_start = time.time()
         processed = 0
         io_executor = ThreadPoolExecutor(max_workers=4)
-        io_futures = []
+        # 4 post-processing threads can run in parallel; the main loop never
+        # blocks on them — it fires-and-forgets and drains at the end.
+        post_executor = ThreadPoolExecutor(max_workers=4)
+        post_futures = []
 
         def _save_checkpoint(ckpt_path, data):
             with open(ckpt_path, "wb") as f:
                 pickle.dump(data, f)
 
-        # Process in chunks (using pre-tokenized IDs to skip CPU rendering)
+        def _post_process_chunk(outputs, chunk_indices_copy, prompt_len_cap):
+            """Runs in background: compute confs, save ckpts. Never blocks main."""
+            confs_per_trace = compute_confs_batched(outputs, prompt_len_cap)
+            for i in range(len(outputs)):
+                trace_idx = chunk_indices_copy[i]
+                confs = confs_per_trace[i]
+                n = len(confs)
+                ckpt_data = {"confs": confs, "num_tokens": n}
+                existing_confs[trace_idx] = ckpt_data
+                ckpt_path = os.path.join(ckpt_dir, f"trace_{trace_idx:04d}.pkl")
+                io_executor.submit(_save_checkpoint, ckpt_path, ckpt_data)
+
+        # Process in chunks (using pre-tokenized IDs to skip CPU rendering).
+        # Main loop = GPU only. Post-processing is fire-and-forget to the
+        # post_executor, never blocking the next llm.generate call.
+        prev_loop_end = None
         for chunk_start in range(0, n_to_process, chunk_size):
-            # Wait for previous chunk's I/O to finish before reusing memory
-            for fut in io_futures:
-                fut.result()
-            io_futures.clear()
+            loop_start = time.time()
+            gap_since_prev = (loop_start - prev_loop_end) if prev_loop_end else 0.0
 
             chunk_end = min(chunk_start + chunk_size, n_to_process)
             chunk = candidates[chunk_start:chunk_end]
             chunk_prompts = [{"prompt_token_ids": c[1]} for c in chunk]
             chunk_indices = [c[0] for c in chunk]
             max_est = chunk[-1][2]
+            prep_time = time.time() - loop_start
 
             t0 = time.time()
             outputs = llm.generate(chunk_prompts, sampling_params)
             chunk_time = time.time() - t0
 
-            chunk_tokens = 0
-            for i, output in enumerate(outputs):
-                trace_idx = chunk_indices[i]
-                if output.prompt_logprobs:
-                    confs = compute_confidence_from_prompt_logprobs(
-                        output.prompt_logprobs, prompt_len
-                    )
-                else:
-                    confs = []
-                num_tokens = len(confs)
-                chunk_tokens += num_tokens
-                ckpt_data = {"confs": confs, "num_tokens": num_tokens}
-                existing_confs[trace_idx] = ckpt_data
-
-                # Async checkpoint write
-                ckpt_path = os.path.join(ckpt_dir, f"trace_{trace_idx:04d}.pkl")
-                io_futures.append(io_executor.submit(_save_checkpoint, ckpt_path, ckpt_data))
+            submit_start = time.time()
+            post_futures.append(post_executor.submit(
+                _post_process_chunk, outputs, chunk_indices, prompt_len
+            ))
+            submit_time = time.time() - submit_start
 
             processed += len(chunk)
-            del outputs
-            gc.collect()
-
             elapsed = time.time() - total_start
-            print(f"    {processed}/{n_to_process} "
-                  f"(chunk {chunk_time:.1f}s, max_est ~{max_est} tok, "
-                  f"total {elapsed:.0f}s, "
-                  f"~{chunk_tokens/max(chunk_time, 0.1):.0f} tok/s)")
+            in_flight = sum(1 for f in post_futures if not f.done())
+            done_posts = sum(1 for f in post_futures if f.done())
+            ts = time.strftime("%H:%M:%S")
+            print(f"[{ts}] {processed}/{n_to_process} "
+                  f"chunk[prep {prep_time*1000:.0f}ms, GPU {chunk_time:.1f}s, "
+                  f"submit {submit_time*1000:.0f}ms, gap-since-prev {gap_since_prev:.1f}s] "
+                  f"post[inflight {in_flight}, done {done_posts}] "
+                  f"max_est ~{max_est} total {elapsed:.0f}s", flush=True)
 
-        # Wait for remaining I/O
-        for fut in io_futures:
+            del outputs
+            prev_loop_end = time.time()
+
+        # Drain all post-processing tasks and pending I/O saves.
+        drain_start = time.time()
+        for fut in post_futures:
             fut.result()
-        io_executor.shutdown(wait=False)
+        print(f"    drained {len(post_futures)} post tasks in {time.time()-drain_start:.1f}s")
+        post_executor.shutdown(wait=True)
+        io_executor.shutdown(wait=True)
 
     # Assemble final pickle
     total_tokens = 0

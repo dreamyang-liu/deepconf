@@ -134,6 +134,9 @@ def producer(
                 out_path = os.path.join(output_trace_dir, f"qid{qid}_trace{trace_idx}.pkl")
                 if os.path.exists(out_path):
                     total_skipped += 1
+                    if total_skipped <= 5 or total_skipped % 200 == 0:
+                        print(f"  [Producer {producer_id}] qid{qid} trace{trace_idx}: "
+                              f"skipped (already exists), total_skipped={total_skipped}")
                     continue
 
             confs = trace.get("confs", [])
@@ -149,14 +152,20 @@ def producer(
                     avg_conf = None
                 probes.append({"depth": depth, "input_ids": full_ids, "avg_conf": avg_conf})
 
+            t_put = time.time()
             prep_queue.put({
                 "qid": qid,
                 "trace_idx": trace_idx,
                 "ground_truth": ground_truth,
                 "probes": probes,
             })
+            put_elapsed = time.time() - t_put
             total_bundles += 1
             total_probes += len(probes)
+            if put_elapsed > 2.0:
+                print(f"  [Producer {producer_id}] WARNING: prep_queue.put blocked "
+                      f"{put_elapsed:.1f}s for qid{qid} trace{trace_idx} "
+                      f"(queue may be full)")
 
         print(f"  [Producer {producer_id}] qid{qid} done: "
               f"{total_bundles} bundles, {total_probes} probes so far")
@@ -234,11 +243,19 @@ def gpu_worker(
         total_batches += 1
 
         t_batch = time.time()
+        if len(batch_ids) > 0:
+            max_seq = max(seq_lens)
+            if max_seq > 28000:
+                print(f"  [GPU {worker_id}] starting large batch: {len(items)} items, "
+                      f"max_seq={max_seq}, total_tokens={total_tokens}")
         outputs = engine.generate(
             input_ids=batch_ids,
             sampling_params=sampling_params,
         )
         batch_elapsed = time.time() - t_batch
+        if batch_elapsed > 30:
+            print(f"  [GPU {worker_id}] WARNING: engine.generate took {batch_elapsed:.1f}s "
+                  f"({len(items)} items, total_tokens={total_tokens})")
 
         completed_count = 0
         for (bid, pidx, depth, _ids, avg_conf), out in zip(items, outputs):
@@ -254,7 +271,12 @@ def gpu_worker(
                     "ground_truth": b["ground_truth"],
                     "probes": [b["results"][i] for i in range(b["num_probes"])],
                 }
+                t_rput = time.time()
                 result_queue.put(completed)
+                rput_elapsed = time.time() - t_rput
+                if rput_elapsed > 2.0:
+                    print(f"  [GPU {worker_id}] WARNING: result_queue.put blocked "
+                          f"{rput_elapsed:.1f}s (queue may be full)")
                 del bundles[bid]
                 completed_count += 1
                 total_bundles_done += 1
@@ -314,6 +336,9 @@ def gpu_worker(
 
     print(f"  [GPU {worker_id}] waiting for bundles...")
 
+    idle_since = None
+    last_idle_log = 0
+
     while not got_sentinel:
         # --- Accumulate bundles for next wave ---
         wave_bundles = {}
@@ -328,7 +353,24 @@ def gpu_worker(
             except Exception:
                 if wave_bundles:
                     break
+                # Log idle state periodically
+                now = time.time()
+                if idle_since is None:
+                    idle_since = now
+                if now - last_idle_log > 30:
+                    idle_dur = now - idle_since
+                    try:
+                        qsize = prep_queue.qsize()
+                    except Exception:
+                        qsize = "?"
+                    print(f"  [GPU {worker_id}] IDLE for {idle_dur:.0f}s waiting "
+                          f"for bundles (prep_queue size={qsize}, "
+                          f"cumulative: {total_bundles_done} bundles, "
+                          f"{total_probes} probes)")
+                    last_idle_log = now
                 continue
+
+            idle_since = None  # got a bundle, reset idle tracker
 
             if bundle is SENTINEL:
                 got_sentinel = True
@@ -380,9 +422,23 @@ def writer_fn(result_queue, output_dir, num_gpus):
     total_correct = 0
     gpus_done = 0
     t_start = time.time()
+    last_item_time = time.time()
 
     while True:
-        item = result_queue.get()
+        # Use timeout so we can log heartbeat if writer is idle
+        try:
+            item = result_queue.get(timeout=30)
+        except Exception:
+            idle_dur = time.time() - last_item_time
+            try:
+                rq_size = result_queue.qsize()
+            except Exception:
+                rq_size = "?"
+            print(f"  [Writer] IDLE for {idle_dur:.0f}s, no results received "
+                  f"(result_queue size={rq_size}, "
+                  f"traces written={total_traces}, probes={total_probes})")
+            continue
+        last_item_time = time.time()
         if item is SENTINEL:
             gpus_done += 1
             print(f"  [Writer] GPU sentinel received ({gpus_done}/{num_gpus})")
@@ -406,11 +462,9 @@ def writer_fn(result_queue, output_dir, num_gpus):
                 answer = raw_text.strip().rstrip("}").strip() or None
 
             is_correct = False
-            if answer and gt:
-                try:
-                    is_correct = equal_func(answer, gt)
-                except Exception:
-                    is_correct = str(answer) == str(gt)
+            # NOTE: equal_func skipped — sympy symbolic eval spawns a subprocess
+            # per probe and causes writer thread deadlock on complex HMMT answers.
+            # is_correct can be recomputed as a post-processing step from raw_text.
 
             probe_results[depth] = {
                 "answer": answer,
@@ -522,19 +576,60 @@ def run_pipeline(args):
         prod_procs.append(p)
     print(f"Started {len(prod_procs)} producers")
 
+    # --- Monitor thread: periodic pipeline health report ---
+    monitor_stop = threading.Event()
+
+    def monitor_fn():
+        t0 = time.time()
+        while not monitor_stop.wait(30):
+            elapsed = time.time() - t0
+            try:
+                pq_size = prep_queue.qsize()
+            except Exception:
+                pq_size = "?"
+            try:
+                rq_size = result_queue.qsize()
+            except Exception:
+                rq_size = "?"
+            prod_alive = sum(1 for p in prod_procs if p.is_alive())
+            gpu_alive = sum(1 for p in gpu_procs if p.is_alive())
+            # Count output files
+            trace_dir = os.path.join(args.output_dir, "traces")
+            try:
+                n_files = len(os.listdir(trace_dir))
+            except Exception:
+                n_files = "?"
+            print(f"  [Monitor] {elapsed:.0f}s | "
+                  f"prep_queue={pq_size}, result_queue={rq_size} | "
+                  f"producers alive={prod_alive}/{len(prod_procs)}, "
+                  f"GPU workers alive={gpu_alive}/{num_gpus} | "
+                  f"output traces={n_files}")
+
+    monitor_thread = threading.Thread(target=monitor_fn, daemon=True)
+    monitor_thread.start()
+
     # --- Wait for producers, then signal GPU workers to stop ---
-    for p in prod_procs:
+    for i, p in enumerate(prod_procs):
         p.join()
+        print(f"  Producer {i} joined (exit code {p.exitcode})")
     print("All producers finished, sending stop signals to GPU workers...")
-    for _ in range(num_gpus):
+    for i in range(num_gpus):
+        print(f"  Sending sentinel {i+1}/{num_gpus} to prep_queue...")
+        t_sent = time.time()
         prep_queue.put(SENTINEL)
+        sent_elapsed = time.time() - t_sent
+        if sent_elapsed > 2.0:
+            print(f"  WARNING: sentinel {i+1} put blocked {sent_elapsed:.1f}s")
+        print(f"  Sentinel {i+1}/{num_gpus} sent ({sent_elapsed:.1f}s)")
 
     # --- Wait for GPU workers ---
-    for p in gpu_procs:
+    for i, p in enumerate(gpu_procs):
         p.join()
+        print(f"  GPU worker {i} joined (exit code {p.exitcode})")
     print("All GPU workers finished")
 
-    # --- Wait for writer ---
+    # --- Stop monitor and wait for writer ---
+    monitor_stop.set()
     wt.join()
     print("Done")
 

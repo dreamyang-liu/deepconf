@@ -11,18 +11,19 @@ import time
 import pickle
 import numpy as np
 from datetime import datetime
-from helper import equal_func, prepare_prompt_gpt, weighted_majority_vote, process_batch_results_offline, prepare_prompt
+from helper import equal_func, prepare_prompt_gpt, weighted_majority_vote, process_batch_results_offline, process_output_offline, prepare_prompt
 import os
 import argparse
 
 # Configuration
-MODEL_PATH = "deepseek-ai/DeepSeek-R1-0528-Qwen3-8B"
-MAX_TOKENS = 64000
-DATASET_FILE = "hmmt_feb_2025.jsonl"
+MODEL_PATH = "Qwen/Qwen3-32B"
+MAX_TOKENS = 31500
+DATASET_FILE = "aime_2024.jsonl"
 
 # Algorithm parameters
-TOTAL_BUDGET = 4096 
+TOTAL_BUDGET = 4096
 WINDOW_SIZE = 2048
+BATCH_SIZE = 256
 REASONING_EFFORT = 'high'
 
 def main(qid, rid):
@@ -88,31 +89,52 @@ def main(qid, rid):
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 
-    # Generate all traces at once
-    print(f"  Generating {TOTAL_BUDGET} traces for question {qid}...")
+    # Generate in batches so we can checkpoint mid-run
+    num_batches = (TOTAL_BUDGET + BATCH_SIZE - 1) // BATCH_SIZE
+    print(f"  Generating {TOTAL_BUDGET} traces in {num_batches} batches of {BATCH_SIZE} for question {qid}...")
     generation_start = time.time()
-    sampling_params = SamplingParams(
-        n=TOTAL_BUDGET,
-        temperature=0.6,
-        top_p=0.95,
-        # top_k=-1,
-        max_tokens=MAX_TOKENS,
-        logprobs=20,
-    )
 
-    outputs = llm.generate([prompt], sampling_params)
+    ckpt_dir = f"outputs/deepconf_qid{qid}_rid{rid}_{timestamp}_batches"
+    os.makedirs(ckpt_dir, exist_ok=True)
+
+    all_traces = []
+    total_tokens = 0
+    processing_results_time = 0.0
+    remaining = TOTAL_BUDGET
+
+    for b in range(num_batches):
+        n = min(BATCH_SIZE, remaining)
+        batch_start = time.time()
+        batch_params = SamplingParams(
+            n=n,
+            temperature=0.6,
+            top_p=0.95,
+            top_k=20,
+            max_tokens=MAX_TOKENS,
+            logprobs=20,
+        )
+        batch_outputs = llm.generate([prompt], batch_params)
+
+        proc_start = time.time()
+        batch_traces = []
+        for out in batch_outputs[0].outputs:
+            td = process_output_offline(out, ground_truth, WINDOW_SIZE)
+            batch_traces.append(td)
+            total_tokens += td["num_tokens"]
+        processing_results_time += time.time() - proc_start
+
+        all_traces.extend(batch_traces)
+
+        # Checkpoint this batch
+        ckpt_path = os.path.join(ckpt_dir, f"batch_{b:02d}.pkl")
+        with open(ckpt_path, "wb") as f:
+            pickle.dump(batch_traces, f)
+
+        print(f"    Batch {b+1}/{num_batches}: {n} traces in {time.time()-batch_start:.1f}s (cumulative: {len(all_traces)}/{TOTAL_BUDGET})")
+        remaining -= n
+
     generation_time = time.time() - generation_start
-
-    # Process results
-    processing_results_start = time.time()
-    result = process_batch_results_offline(outputs, ground_truth, window_size=WINDOW_SIZE)
-    processing_results_time = time.time() - processing_results_start
-
     print(f"    Generation completed: {generation_time:.2f}s gen, {processing_results_time:.2f}s proc")
-
-    # Get all traces
-    all_traces = result['traces']
-    total_tokens = result['total_tokens']
 
     # Voting for final answer - use all traces with valid answers
     voting_answers = []

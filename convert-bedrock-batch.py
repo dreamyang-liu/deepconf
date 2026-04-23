@@ -151,9 +151,11 @@ def build_trace(reasoning, content, ground_truth, stop_reason):
     }
 
 
-def convert_dataset(dataset_name, output_dir, rid="bedrock"):
+def convert_dataset(dataset_name, output_dir, rid="bedrock", bedrock_dir=None):
     cfg = DATASET_CONFIG[dataset_name]
-    batch_dir = cfg["batch_dir"]
+    batch_dir = (
+        os.path.join(bedrock_dir, dataset_name) if bedrock_dir else cfg["batch_dir"]
+    )
     dataset_file = cfg["dataset_file"]
 
     # Load ground truth
@@ -318,6 +320,13 @@ def main():
     parser.add_argument(
         "--rid", type=str, default="bedrock", help="Run ID (default: bedrock)"
     )
+    parser.add_argument(
+        "--bedrock-dir",
+        type=str,
+        default=None,
+        help="Override bedrock batch root directory (default: uses DATASET_CONFIG). "
+             "Expects <bedrock_dir>/<dataset>/<shard>/<batch_id>/*.jsonl.out layout.",
+    )
     args = parser.parse_args()
 
     datasets = (
@@ -328,7 +337,7 @@ def main():
         print(f"\n{'#'*60}")
         print(f"# Converting {ds_name}")
         print(f"{'#'*60}\n")
-        convert_dataset(ds_name, args.output_dir, args.rid)
+        convert_dataset(ds_name, args.output_dir, args.rid, args.bedrock_dir)
 
 
 if __name__ == "__main__":

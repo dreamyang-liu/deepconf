@@ -53,7 +53,7 @@ def equal_func(answer, ground_truth):
     if len(answer) == 1 and answer.isalpha() and len(ground_truth) == 1 and ground_truth.isalpha():
         return answer.lower() == ground_truth.lower()
     else:
-        return math_equal(answer, ground_truth)
+        return math_equal(answer, ground_truth, timeout=5)
 
 def compute_confidence(logprobs):
     """Compute confidence score from logprobs"""

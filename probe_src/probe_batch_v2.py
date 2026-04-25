@@ -212,6 +212,8 @@ def gpu_worker(
         model_path=model_path,
         tp_size=1,
         mem_fraction_static=mem_fraction,
+        fp8_gemm_runner_backend="triton",
+        moe_runner_backend="triton",
     )
     print(f"  [GPU {worker_id}] engine ready")
 
